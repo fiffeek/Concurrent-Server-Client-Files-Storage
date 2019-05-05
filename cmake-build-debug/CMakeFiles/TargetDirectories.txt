@@ -1,3 +1,0 @@
-/home/fiffeek/Desktop/SIK_ZAD2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/fiffeek/Desktop/SIK_ZAD2/cmake-build-debug/CMakeFiles/SIK_ZAD2.dir
-/home/fiffeek/Desktop/SIK_ZAD2/cmake-build-debug/CMakeFiles/edit_cache.dir
