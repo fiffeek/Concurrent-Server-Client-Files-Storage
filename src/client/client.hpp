@@ -10,7 +10,7 @@ namespace sik::client {
 
     class client {
     public:
-        client(message data) : data(std::move(data)) {}
+        explicit client(const message& data) : data(data) {}
 
         void run() {
 

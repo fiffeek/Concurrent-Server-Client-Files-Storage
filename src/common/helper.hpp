@@ -7,7 +7,7 @@ namespace sik::common {
     template<typename T>
     T check_range(T value, T min, T max) {
         if (value < min || value > max) {
-            throw std::range_error("timeout out of range");
+            throw std::range_error("Argument out of range");
         }
 
         return value;

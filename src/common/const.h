@@ -10,6 +10,9 @@ namespace sik::common {
     constexpr int OK = 0;
     constexpr int MIN_WAIT = 1;
     constexpr int MAX_WAIT = 300;
+    constexpr int C_ERR = -1;
+    constexpr int MESSAGE_TITLE = 10;
+    constexpr int MAX_PACKET_SIZE = 65507;
 }
 
 #endif //SIK_ZAD2_CONST_H

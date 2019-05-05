@@ -3,26 +3,31 @@
 
 #include <iostream>
 #include <cstdint>
+#include <dirent.h>
 #include "../common/message.hpp"
+#include "folder_handler.hpp"
+#include "server_socket.hpp"
 
 namespace sik::server {
     using message = sik::common::server_message;
 
     class server {
-    private:
-        void index_files() {
-
-        }
-
     public:
-        server(message data) : data(std::move(data)) {}
+        explicit server(const message& data)
+        : data(data)
+        , fldr(data.folder, data.max_space)
+        , socket(data) {}
 
         void run() {
-            index_files();
+            fldr.index_files();
+            socket.connect();
+            std::cout << fldr << std::endl;
         }
 
     private:
         message data;
+        folder fldr;
+        server_socket socket;
     };
 }
 

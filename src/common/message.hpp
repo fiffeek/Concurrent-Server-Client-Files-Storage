@@ -4,6 +4,10 @@
 #include <string>
 
 namespace sik::common {
+    namespace {
+        #define struct_packed __attribute__((__packed__))
+    }
+
     struct common_message {
         std::string mcast_addr;
         uint16_t cmd_port;
@@ -17,14 +21,29 @@ namespace sik::common {
     struct server_message
             : public common_message {
         uint64_t max_space;
-        uint64_t space_left;
 
         server_message(const std::string &mcast_addr, uint16_t cmd_port, const std::string &folder, int timeout,
-                       uint64_t max_space) : common_message(mcast_addr, cmd_port, folder, timeout), max_space
-                (max_space), space_left(max_space) {}
+                       uint64_t max_space) : common_message(mcast_addr, cmd_port, folder, timeout), max_space(max_space)
+                       {}
     };
 
     using client_message = common_message;
+
+    struct struct_packed cmd {
+        char title[MESSAGE_TITLE];
+        uint64_t cmd_seq;
+    };
+
+    struct struct_packed simpl_cmd
+            : cmd {
+        char data[MAX_PACKET_SIZE - sizeof(cmd)];
+    };
+
+    struct struct_packed cmplx_cmd
+            : cmd {
+        uint64_t param;
+        char data[MAX_PACKET_SIZE - sizeof(cmd) - sizeof(param)];
+    };
 }
 
 #endif //SIK_ZAD2_MESSAGE_HPP
