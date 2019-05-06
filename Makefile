@@ -2,7 +2,7 @@ TARGET: netstore-client netstore-server
 
 CC	= g++-7
 CFLAGS	= -std=c++17 -Wall -Werror
-LFLAGS	= -lpthread -lboost_program_options
+LFLAGS	= -lpthread -lboost_program_options -lboost_system -lboost_filesystem
 
 all: netstore-client netstore-server
 

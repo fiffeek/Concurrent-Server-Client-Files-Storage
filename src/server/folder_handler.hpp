@@ -10,27 +10,27 @@
 #include <unordered_set>
 #include <iostream>
 #include "../common/const.h"
+#include <boost/filesystem.hpp>
 
 namespace sik::server {
+    namespace {
+        namespace fs = boost::filesystem;
+    }
+
     class folder {
     private:
         using c_dirent = struct dirent;
         using c_stat = struct stat;
         using c_directory = DIR;
 
-        void index_file(const std::string& single_file, c_dirent *dir) {
-            c_stat st = {0};
-
-            if (lstat(single_file.c_str(), &st) == sik::common::C_ERR) {
-                throw std::runtime_error("Cannot stat the file in the given directory");
-            }
-
-            if (S_ISREG(st.st_mode)) {
-                std::string filename = dir->d_name;
+        void index_file(const fs::path& single_file) {
+            if (fs::is_regular_file(single_file)) {
+                std::string filename = single_file.filename().string();
+                uint64_t single_file_size = fs::file_size(single_file);
 
                 files.insert(filename);
-                file_size[filename] = (uint64_t) st.st_size;
-                folder_size += (uint64_t) st.st_size;
+                file_size[filename] = single_file_size;
+                folder_size += single_file_size;
             }
         }
 
@@ -39,20 +39,11 @@ namespace sik::server {
         : folder_name(folderName), folder_size(0), max_space(max_space) {}
 
         void index_files() {
-            to_free = nullptr;
+            const fs::path directory{folder_name};
 
-            c_directory *directory = opendir(folder_name.c_str());
-            c_dirent *dir;
-
-            if (directory) {
-                to_free = directory;
-
-                while ((dir = readdir(directory)) != nullptr) {
-                    index_file(folder_name + "/" + dir->d_name, dir);
-                }
-
-                if (closedir(directory) == sik::common::OK) to_free = nullptr;
-                else throw std::runtime_error("Cannot close the opened directory");
+            if (fs::exists(directory) && fs::is_directory(directory)) {
+                for (const fs::directory_entry& dir : fs::recursive_directory_iterator{directory})
+                    index_file(dir.path());
 
                 if (max_space < folder_size)
                     throw std::runtime_error("Folder size exceeds the maximal server size");
