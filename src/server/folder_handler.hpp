@@ -19,10 +19,6 @@ namespace sik::server {
 
     class folder {
     private:
-        using c_dirent = struct dirent;
-        using c_stat = struct stat;
-        using c_directory = DIR;
-
         void index_file(const fs::path& single_file) {
             if (fs::is_regular_file(single_file)) {
                 std::string filename = single_file.filename().string();
@@ -42,7 +38,7 @@ namespace sik::server {
             const fs::path directory{folder_name};
 
             if (fs::exists(directory) && fs::is_directory(directory)) {
-                for (const fs::directory_entry& dir : fs::recursive_directory_iterator{directory})
+                for (const fs::directory_entry& dir : fs::directory_iterator{directory})
                     index_file(dir.path());
 
                 if (max_space < folder_size)
@@ -52,16 +48,9 @@ namespace sik::server {
             }
         }
 
-        ~folder() {
-            if (to_free != nullptr) {
-                closedir(to_free); // does not matter if it ends with success here
-            }
-        }
-
         friend std::ostream& operator<<(std::ostream& os, folder& fldr);
 
     private:
-        DIR *to_free; //< helper, to close the directory after indexing throws
         std::string folder_name;
         std::unordered_set<std::string> files;
         std::unordered_map<std::string, uint64_t> file_size;

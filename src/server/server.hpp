@@ -22,6 +22,11 @@ namespace sik::server {
             fldr.index_files();
             socket.connect();
             std::cout << fldr << std::endl;
+
+            for (;;) {
+                std::cout << "waiting for packet" << std::endl;
+                sik::common::packet_from_client new_packet = socket.receive();
+            }
         }
 
     private:

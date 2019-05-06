@@ -2,6 +2,11 @@
 #define SIK_ZAD2_MESSAGE_HPP
 
 #include <string>
+#include "type.hpp"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <zconf.h>
 
 namespace sik::common {
     namespace {
@@ -43,6 +48,13 @@ namespace sik::common {
             : cmd {
         uint64_t param;
         char data[MAX_PACKET_SIZE - sizeof(cmd) - sizeof(param)];
+    };
+
+    struct packet_from_client {
+        sockaddr_in client;
+        std::vector<sik::common::byte> message;
+
+        explicit packet_from_client(const sockaddr_in &client) : client(client) {}
     };
 }
 
