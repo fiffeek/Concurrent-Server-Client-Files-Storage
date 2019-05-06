@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/SIK_ZAD2.dir/src/client.cpp.o CMakeFiles/SIK_ZAD2.dir/src/server.cpp.o  -o SIK_ZAD2 
