@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdint>
 #include "../common/message.hpp"
+#include "input_parser.hpp"
 
 namespace sik::client {
     using message = sik::common::client_message;
@@ -13,11 +14,15 @@ namespace sik::client {
         explicit client(const message& data) : data(data) {}
 
         void run() {
-
+            for (;;) {
+                std::string additional_data;
+                input_parser.parse_line(additional_data);
+            }
         }
 
     private:
         message data;
+        parser input_parser;
     };
 }
 

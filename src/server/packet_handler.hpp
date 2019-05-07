@@ -48,6 +48,7 @@ namespace sik::server {
         template <typename T>
         T pack(cm::packet_from_client& packet) {
             T cmd{};
+            memset(&cmd, 0, sizeof cmd);
             memcpy(&cmd, packet.message.data(), packet.message.size());
 
             return cmd;

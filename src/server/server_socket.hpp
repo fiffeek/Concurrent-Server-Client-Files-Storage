@@ -59,7 +59,7 @@ namespace sik::server {
                 if (errno == EAGAIN || errno == EWOULDBLOCK) {
                     errno = sik::common::OK;
                 } else {
-                    throw std::runtime_error(std::string("Socket expection: ") + strerror(errno));
+                    throw std::runtime_error(std::string("Socket exception: ") + strerror(errno));
                 }
             }
 
