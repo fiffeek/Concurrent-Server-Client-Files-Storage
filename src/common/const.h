@@ -13,6 +13,7 @@ namespace sik::common {
     constexpr int C_ERR = -1;
     constexpr int MESSAGE_TITLE = 10;
     constexpr int MAX_PACKET_SIZE = 65507;
+    const char * HELLO = "HELLO";
 }
 
 #endif //SIK_ZAD2_CONST_H

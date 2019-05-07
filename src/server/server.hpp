@@ -7,6 +7,7 @@
 #include "../common/message.hpp"
 #include "folder_handler.hpp"
 #include "server_socket.hpp"
+#include "packet_handler.hpp"
 
 namespace sik::server {
     using message = sik::common::server_message;
@@ -24,8 +25,14 @@ namespace sik::server {
             std::cout << fldr << std::endl;
 
             for (;;) {
-                std::cout << "waiting for packet" << std::endl;
                 sik::common::packet_from_client new_packet = socket.receive();
+
+                switch(packet_handler.handle_packet(new_packet)) {
+                    default:
+                    case action::act::hello:
+                        std::cout << "Got hello msg" << std::endl;
+                        break;
+                }
             }
         }
 
@@ -33,6 +40,7 @@ namespace sik::server {
         message data;
         folder fldr;
         server_socket socket;
+        handler packet_handler;
     };
 }
 

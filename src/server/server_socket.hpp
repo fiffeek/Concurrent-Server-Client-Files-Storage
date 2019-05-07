@@ -34,7 +34,8 @@ namespace sik::server {
                 throw std::runtime_error("Could not set socket options");
 
             int address_reuse = 1;
-            setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &address_reuse, sizeof address_reuse);
+            if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &address_reuse, sizeof address_reuse) < 0)
+                throw std::runtime_error("Could not set socket options");
 
             local_address.sin_family = AF_INET;
             local_address.sin_addr.s_addr = htonl(INADDR_ANY);

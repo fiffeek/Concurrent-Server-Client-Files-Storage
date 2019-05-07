@@ -50,11 +50,17 @@ namespace sik::common {
         char data[MAX_PACKET_SIZE - sizeof(cmd) - sizeof(param)];
     };
 
-    struct packet_from_client {
+    class packet_from_client {
+    public:
         sockaddr_in client;
         std::vector<sik::common::byte> message;
+        std::optional<cmplx_cmd> cmplx;
+        std::optional<simpl_cmd> simpl;
 
-        explicit packet_from_client(const sockaddr_in &client) : client(client) {}
+        explicit packet_from_client(const sockaddr_in &client) : client(client) {
+            cmplx.reset();
+            simpl.reset();
+        }
     };
 }
 
