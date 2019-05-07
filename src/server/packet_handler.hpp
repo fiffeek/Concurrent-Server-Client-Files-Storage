@@ -13,7 +13,7 @@ namespace sik::server {
 
     namespace action {
         enum act {
-            hello, bye
+            hello, list, get, del, add
         };
     }
 

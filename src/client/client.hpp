@@ -5,6 +5,7 @@
 #include <cstdint>
 #include "../common/message.hpp"
 #include "input_parser.hpp"
+#include "sequence_iter.hpp"
 
 namespace sik::client {
     using message = sik::common::client_message;
@@ -14,15 +15,27 @@ namespace sik::client {
         explicit client(const message& data) : data(data) {}
 
         void run() {
-            for (;;) {
+            bool should_continue = true;
+
+            while (should_continue) {
                 std::string additional_data;
-                input_parser.parse_line(additional_data);
+
+                switch (input_parser.parse_line(additional_data)) {
+                    default:
+                    case sik::client::action::act::invalid:
+                        input_parser.invalid_input_log();
+                        break;
+                    case sik::client::action::act::exit:
+                        should_continue = false;
+                        break;
+                }
             }
         }
 
     private:
         message data;
         parser input_parser;
+        sequence cmd_seq;
     };
 }
 
