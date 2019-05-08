@@ -6,7 +6,7 @@
 #include <regex>
 
 namespace sik::client {
-    namespace action {
+    namespace input {
         enum act {
             discover, invalid, search, fetch, upload, remove, exit
         };
@@ -23,7 +23,7 @@ namespace sik::client {
         , remove("remove ([\\w\\s.]+)", std::regex_constants::icase)
         , exit("exit", std::regex_constants::icase) {}
 
-        action::act parse_line(std::string& additional_data) {
+        input::act parse_line(std::string& additional_data) {
             std::string line;
             std::getline(std::cin, line);
 
@@ -43,22 +43,22 @@ namespace sik::client {
                     });
 
             if (std::regex_match(line_cast, match, discover)) {
-                return action::act::discover;
+                return input::act::discover;
             } else if (std::regex_match(line_cast, match, empty_search)) {
-                return action::act::search;
+                return input::act::search;
             } else if (std::regex_match(line_cast, match, search)) {
-                return action::act::search;
+                return input::act::search;
             } else if (std::regex_match(line_cast, match, fetch)) {
-                return action::act::fetch;
+                return input::act::fetch;
             } else if (std::regex_match(line_cast, match, upload)) {
-                return action::act::upload;
+                return input::act::upload;
             } else if (std::regex_match(line_cast, match, remove)) {
-                return action::act::remove;
+                return input::act::remove;
             } else if (std::regex_match(line_cast, match, exit)) {
-                return action::act::exit;
+                return input::act::exit;
             }
 
-            return action::act::invalid;
+            return input::act::invalid;
         }
 
         void invalid_input_log() {

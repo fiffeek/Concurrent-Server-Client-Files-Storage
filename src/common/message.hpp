@@ -20,7 +20,10 @@ namespace sik::common {
         int timeout;
 
         common_message(const std::string &mcast_addr, uint16_t cmd_port, const std::string &folder, int timeout)
-                : mcast_addr(mcast_addr), cmd_port(cmd_port), folder(folder), timeout(timeout) {}
+                : mcast_addr(mcast_addr)
+                , cmd_port(cmd_port)
+                , folder(folder)
+                , timeout(timeout) {}
     };
 
     struct server_message
@@ -28,7 +31,9 @@ namespace sik::common {
         uint64_t max_space;
 
         server_message(const std::string &mcast_addr, uint16_t cmd_port, const std::string &folder, int timeout,
-                       uint64_t max_space) : common_message(mcast_addr, cmd_port, folder, timeout), max_space(max_space)
+                       uint64_t max_space)
+                       : common_message(mcast_addr, cmd_port, folder, timeout)
+                       , max_space(max_space)
                        {}
     };
 
@@ -52,6 +57,13 @@ namespace sik::common {
 
     constexpr size_t SIMPL_HEADER = sizeof(cmd);
     constexpr size_t CMPL_SIZE = sizeof(cmd) + sizeof(uint64_t);
+
+    std::vector<sik::common::byte> to_vector(const std::string& str) {
+        std::vector<sik::common::byte> aux(str.length());
+        aux.assign(str.begin(), str.end());
+
+        return aux;
+    }
 
     simpl_cmd make_command(const char* title, uint64_t cmd_seq, const std::vector<sik::common::byte>& data) {
         simpl_cmd simple{};
@@ -92,6 +104,10 @@ namespace sik::common {
         single_packet() {
             cmplx.reset();
             simpl.reset();
+        }
+
+        uint64_t get_cmd_seq() {
+            return cmplx.has_value() ? cmplx->cmd_seq : simpl->cmd_seq;
         }
     };
 }

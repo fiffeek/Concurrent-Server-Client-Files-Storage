@@ -2,6 +2,8 @@
 #define SIK_ZAD2_HELPER_HPP
 
 #include <stdexcept>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 namespace sik::common {
     template<typename T>
@@ -11,6 +13,17 @@ namespace sik::common {
         }
 
         return value;
+    }
+
+    std::string get_port(const sockaddr_in& client) {
+        return std::to_string(client.sin_port);
+    }
+
+    std::string get_addr(const sockaddr_in& client) {
+        char str[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(client.sin_addr), str, INET_ADDRSTRLEN); //TODO EXCP HANDLE
+
+        return std::string(str);
     }
 }
 

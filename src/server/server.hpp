@@ -19,8 +19,15 @@ namespace sik::server {
                 , fldr(data.folder, data.max_space)
                 , socket(data) {}
 
-        void hello() {
+        void hello(sik::common::single_packet& packet) {
+            auto cmd = sik::common::make_command(
+                    sik::common::GOOD_DAY,
+                    packet.get_cmd_seq(),
+                    fldr.get_free_space(),
+                    sik::common::to_vector(data.mcast_addr)
+            );
 
+            socket.sendto(cmd, data.mcast_addr.length(), packet.client);
         }
 
         void run() {
@@ -29,12 +36,15 @@ namespace sik::server {
             std::cout << fldr << std::endl;
 
             for (;;) {
-                sik::common::single_packet new_packet = socket.receive();
+                sik::common::single_packet packet = socket.receive();
 
-                switch(packet_handler.handle_packet(new_packet)) {
-                    default:
+                switch(packet_handler.handle_packet(packet)) {
                     case action::act::hello:
-                        hello();
+                        hello(packet);
+                        break;
+                    default:
+                    case action::act::invalid:
+                        std::cout << "invalid" << std::endl;
                         break;
                 }
             }

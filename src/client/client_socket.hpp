@@ -27,6 +27,11 @@ namespace sik::client {
             if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_TTL, (void *) &optval, sizeof optval) < 0)
                 throw std::runtime_error("Could not set socket options");
 
+            timeval read_timeout{};
+            read_timeout.tv_sec = 1;
+            if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout) < 0)
+                throw std::runtime_error("Could not set socket options");
+
             remote_address.sin_family = AF_INET;
             remote_address.sin_port = htons(cmd_port);
             if (inet_aton(mcast_addr.c_str(), &remote_address.sin_addr) == 0)

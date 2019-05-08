@@ -48,6 +48,10 @@ namespace sik::server {
             }
         }
 
+        uint64_t get_free_space() {
+            return max_space - folder_size;
+        }
+
         friend std::ostream& operator<<(std::ostream& os, folder& fldr);
 
     private:

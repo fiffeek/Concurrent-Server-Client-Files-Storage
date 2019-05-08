@@ -13,7 +13,7 @@ namespace sik::client {
 
     namespace action {
         enum act {
-            good_day, my_list, connect_me, no_way, can_add
+            good_day, my_list, connect_me, no_way, can_add, invalid
         };
     }
 
@@ -32,7 +32,12 @@ namespace sik::client {
                 return action::act::good_day;
             }
 
-            throw std::runtime_error("Could not find suitable packet type");
+            return action::act::invalid;
+        }
+
+        void invalid_packet_log(const char* mess, const sockaddr_in& node) {
+            std::cerr << "[PCKG ERROR] Skipping invalid package from "
+            << sik::common::get_addr(node) << ":" << sik::common::get_addr(node) << "." << mess << std::endl;
         }
     };
 }

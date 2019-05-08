@@ -28,7 +28,9 @@ namespace sik::common {
                                        reinterpret_cast<sockaddr *>(&from), &from_size);
 
             packet.client = from;
-            packet.message.assign(buff, buff + rcv_len);
+
+            if (rcv_len > 0)
+                packet.message.assign(buff, buff + rcv_len);
 
             return rcv_len;
         }

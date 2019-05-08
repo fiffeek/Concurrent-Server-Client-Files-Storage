@@ -13,7 +13,7 @@
 
 namespace sik::server {
     class server_socket
-            : sik::common::socket {
+            : public sik::common::socket {
     public:
         explicit server_socket(const sik::common::server_message &data)
                 : socket(data) {}

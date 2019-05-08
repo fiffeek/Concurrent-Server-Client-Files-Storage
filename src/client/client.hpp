@@ -7,6 +7,7 @@
 #include "input_parser.hpp"
 #include "sequence_iter.hpp"
 #include "client_socket.hpp"
+#include "packet_handler.hpp"
 
 namespace sik::client {
     using message = sik::common::client_message;
@@ -25,13 +26,23 @@ namespace sik::client {
 
             socket.sendto(cmd, 0);
             sleep(data.timeout);
-            ssize_t recv_len;
 
-            while ((recv_len = socket.receive(packet)) != 0) {
-                if (recv_len < 0)
-                    throw std::runtime_error("Cannot read from the socket"); //TODO errno wouldblock?
+            while (socket.receive(packet) > 0) {
+                if (packet_handler.handle_packet(packet) != action::act::good_day) {
+                    packet_handler.invalid_packet_log("Action not recognised.", packet.client);
+                } else if (!packet.cmplx.has_value()) {
+                    packet_handler.invalid_packet_log("Packet corrupted.", packet.client);
+                } else if (packet.cmplx->cmd_seq != cmd_seq.get()) {
+                    packet_handler.invalid_packet_log("Sequence number is invalid.", packet.client);
+                } else {
+                    std::string mcast{
+                        packet.cmplx->data,
+                        packet.cmplx->data + packet.message.size() - sik::common::CMPL_SIZE
+                    };
 
-
+                    std::cout << "Found " << sik::common::get_addr(packet.client) << " (" << mcast << ") "
+                    << "with free space " << packet.cmplx->param << std::endl;
+                }
             }
         }
 
@@ -44,14 +55,14 @@ namespace sik::client {
                 std::string additional_data;
 
                 switch (input_parser.parse_line(additional_data)) {
-                    case sik::client::action::act::discover:
+                    case sik::client::input::act::discover:
                         discover();
                         break;
                     default:
-                    case sik::client::action::act::invalid:
+                    case sik::client::input::act::invalid:
                         input_parser.invalid_input_log();
                         break;
-                    case sik::client::action::act::exit:
+                    case sik::client::input::act::exit:
                         should_continue = false;
                         break;
                 }
@@ -63,6 +74,7 @@ namespace sik::client {
         parser input_parser;
         sequence cmd_seq;
         client_socket socket;
+        handler packet_handler;
     };
 }
 

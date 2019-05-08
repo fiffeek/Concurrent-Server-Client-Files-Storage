@@ -14,7 +14,7 @@ namespace sik::server {
 
     namespace action {
         enum act {
-            hello, list, get, del, add
+            hello, list, get, del, add, invalid
         };
     }
 
@@ -33,7 +33,7 @@ namespace sik::server {
                 return action::act::hello;
             }
 
-            throw std::runtime_error("Could not find suitable packet type");
+            return action::act::invalid;
         }
     };
 }
