@@ -5,16 +5,15 @@
 #include "../common/const.h"
 #include <vector>
 #include <iostream>
-#include <optional>
 #include "../common/const.h"
 #include "../common/packer.hpp"
 
-namespace sik::server {
+namespace sik::client {
     namespace cm = sik::common;
 
     namespace action {
         enum act {
-            hello, list, get, del, add
+            good_day, my_list, connect_me, no_way, can_add
         };
     }
 
@@ -28,9 +27,9 @@ namespace sik::server {
 
             std::cout << "Got message titled: " << message << std::endl;
 
-            if (str_message.compare(cm::HELLO) == cm::OK) {
-                pack_simpl(packet);
-                return action::act::hello;
+            if (str_message.compare(cm::GOOD_DAY) == cm::OK) {
+                pack(packet, sik::common::pack_type::cmplx);
+                return action::act::good_day;
             }
 
             throw std::runtime_error("Could not find suitable packet type");

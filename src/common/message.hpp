@@ -50,14 +50,46 @@ namespace sik::common {
         char data[MAX_PACKET_SIZE - sizeof(cmd) - sizeof(param)];
     };
 
-    class packet_from_client {
+    constexpr size_t SIMPL_HEADER = sizeof(cmd);
+    constexpr size_t CMPL_SIZE = sizeof(cmd) + sizeof(uint64_t);
+
+    simpl_cmd make_command(const char* title, uint64_t cmd_seq, const std::vector<sik::common::byte>& data) {
+        simpl_cmd simple{};
+
+        memset(&simple, 0, sizeof simple);
+        memcpy(simple.title, title, strlen(title));
+        memcpy(simple.data, data.data(), data.size());
+        simple.cmd_seq = cmd_seq;
+
+        return simple;
+    }
+
+    cmplx_cmd make_command(const char* title, uint64_t cmd_seq,
+            uint64_t param, const std::vector<sik::common::byte>& data) {
+        cmplx_cmd cmplx{};
+
+        memset(&cmplx, 0, sizeof cmplx);
+        memcpy(cmplx.title, title, strlen(title));
+        memcpy(cmplx.data, data.data(), data.size());
+        cmplx.cmd_seq = cmd_seq;
+        cmplx.param = param;
+
+        return cmplx;
+    }
+
+    class single_packet {
     public:
         sockaddr_in client;
         std::vector<sik::common::byte> message;
         std::optional<cmplx_cmd> cmplx;
         std::optional<simpl_cmd> simpl;
 
-        explicit packet_from_client(const sockaddr_in &client) : client(client) {
+        explicit single_packet(const sockaddr_in &client) : client(client) {
+            cmplx.reset();
+            simpl.reset();
+        }
+
+        single_packet() {
             cmplx.reset();
             simpl.reset();
         }

@@ -15,9 +15,13 @@ namespace sik::server {
     class server {
     public:
         explicit server(const message& data)
-        : data(data)
-        , fldr(data.folder, data.max_space)
-        , socket(data) {}
+                : data(data)
+                , fldr(data.folder, data.max_space)
+                , socket(data) {}
+
+        void hello() {
+
+        }
 
         void run() {
             fldr.index_files();
@@ -25,12 +29,12 @@ namespace sik::server {
             std::cout << fldr << std::endl;
 
             for (;;) {
-                sik::common::packet_from_client new_packet = socket.receive();
+                sik::common::single_packet new_packet = socket.receive();
 
                 switch(packet_handler.handle_packet(new_packet)) {
                     default:
                     case action::act::hello:
-                        std::cout << "Got hello msg" << std::endl;
+                        hello();
                         break;
                 }
             }

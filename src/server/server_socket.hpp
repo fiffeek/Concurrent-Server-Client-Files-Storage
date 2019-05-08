@@ -6,24 +6,23 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <zconf.h>
+#include "../common/socket.hpp"
 #include "../common/type.hpp"
 #include "../common/const.h"
 #include "../common/message.hpp"
 
 namespace sik::server {
-    class server_socket {
+    class server_socket
+            : sik::common::socket {
     public:
-        explicit server_socket(const sik::common::server_message& data)
-            : sock(-1)
-            , mcast_addr(data.mcast_addr)
-            , cmd_port(data.cmd_port)
-            , timeout(data.timeout) {}
+        explicit server_socket(const sik::common::server_message &data)
+                : socket(data) {}
 
-        void connect() {
+        void connect() override {
             sockaddr_in local_address{};
             ip_mreq ip_mreq{};
 
-            if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+            if ((sock = ::socket(AF_INET, SOCK_DGRAM, 0)) < 0)
                 throw std::runtime_error("Could not open a new server's socket");
 
             ip_mreq.imr_interface.s_addr = htonl(INADDR_ANY);
@@ -45,42 +44,15 @@ namespace sik::server {
                 throw std::runtime_error("Could not bind the socket");
         }
 
-        sik::common::packet_from_client receive() {
-            sockaddr_in from{};
-            socklen_t from_size = sizeof from;
+        sik::common::single_packet receive() {
+            sik::common::single_packet packet{};
 
-            memset(&from, 0, sizeof from);
-            memset(&buff, 0, sik::common::MAX_PACKET_SIZE);
-
-            ssize_t rcv_len = recvfrom(sock, &buff, sik::common::MAX_PACKET_SIZE, 0,
-                                       reinterpret_cast<sockaddr *>(&from), &from_size);
-
-            if (rcv_len < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    errno = sik::common::OK;
-                } else {
-                    throw std::runtime_error(std::string("Socket exception: ") + strerror(errno));
-                }
+            if (common::socket::receive(packet) < 0) {
+                throw std::runtime_error("Cannot read from the socket");
             }
-
-            sik::common::packet_from_client packet{from};
-            packet.message.assign(buff, buff + rcv_len);
 
             return packet;
         }
-
-        ~server_socket() {
-            if (sock >= 0) {
-                close(sock);
-            }
-        }
-
-    private:
-        int sock;
-        std::string mcast_addr;
-        uint16_t cmd_port;
-        int timeout;
-        sik::common::byte buff[sik::common::MAX_PACKET_SIZE];
     };
 }
 

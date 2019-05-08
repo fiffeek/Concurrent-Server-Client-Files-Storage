@@ -23,6 +23,8 @@ namespace sik::common {
     const char* CONNECT_ME = "CONNECT_ME";
     const char* NO_WAY = "NO_WAY";
     const char* CAN_ADD = "CAN_ADD";
+    constexpr int POLLS = 64;
+    constexpr int TTL_VALUE = 4;
 }
 
 #endif //SIK_ZAD2_CONST_H
