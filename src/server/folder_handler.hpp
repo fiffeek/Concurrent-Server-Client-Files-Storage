@@ -48,6 +48,22 @@ namespace sik::server {
             }
         }
 
+        std::vector<std::string> filter_and_get_files(const std::string& filter) {
+            std::vector<std::string> aux;
+
+            std::for_each(
+                    files.begin(),
+                    files.end(),
+                    [&] (const std::string& file) {
+                      if (file.find(filter) != std::string::npos) {
+                          aux.push_back(file);
+                      }
+                    }
+                    );
+
+            return aux;
+        }
+
         uint64_t get_free_space() {
             return max_space - folder_size;
         }

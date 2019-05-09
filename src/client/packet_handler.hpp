@@ -30,14 +30,12 @@ namespace sik::client {
             if (str_message.compare(cm::GOOD_DAY) == cm::OK) {
                 pack(packet, sik::common::pack_type::cmplx);
                 return action::act::good_day;
+            } else if (str_message.compare(cm::MY_LIST) == cm::OK) {
+                pack(packet, sik::common::pack_type::simpl);
+                return action::act::my_list;
             }
 
             return action::act::invalid;
-        }
-
-        void invalid_packet_log(const char* mess, const sockaddr_in& node) {
-            std::cerr << "[PCKG ERROR] Skipping invalid package from "
-            << sik::common::get_addr(node) << ":" << sik::common::get_addr(node) << "." << mess << std::endl;
         }
     };
 }

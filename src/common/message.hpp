@@ -56,7 +56,8 @@ namespace sik::common {
     };
 
     constexpr size_t SIMPL_HEADER = sizeof(cmd);
-    constexpr size_t CMPL_SIZE = sizeof(cmd) + sizeof(uint64_t);
+    constexpr size_t CMPLX_HEADER = sizeof(cmd) + sizeof(uint64_t);
+    constexpr size_t SIMPL_DATA_SIZE = MAX_PACKET_SIZE - sizeof(cmd);
 
     std::vector<sik::common::byte> to_vector(const std::string& str) {
         std::vector<sik::common::byte> aux(str.length());
@@ -108,6 +109,30 @@ namespace sik::common {
 
         uint64_t get_cmd_seq() {
             return cmplx.has_value() ? cmplx->cmd_seq : simpl->cmd_seq;
+        }
+
+        std::string data_to_string() const {
+            if (get_data_size() <= 0) {
+                return std::string{};
+            }
+
+            if (cmplx.has_value()) {
+                return std::string{cmplx->data, cmplx->data + get_data_size()};
+            } else if (simpl.has_value()) {
+                return std::string{simpl->data, simpl->data + get_data_size()};
+            } else {
+                throw std::logic_error("Cannot return data size of undefined");
+            }
+        }
+
+        int get_data_size() const {
+            if (cmplx.has_value()) {
+                return message.size() - sik::common::CMPLX_HEADER;
+            } else if (simpl.has_value()) {
+                return message.size() - sik::common::SIMPL_HEADER;
+            } else {
+                throw std::logic_error("Cannot return data size of undefined");
+            }
         }
     };
 }

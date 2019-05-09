@@ -53,6 +53,48 @@ namespace sik::server {
 
             return packet;
         }
+
+        void send_files_to(std::vector<std::string> &files, sik::common::single_packet &clients_packet) {
+            if (files.size() == 0 || files.empty()) {
+                return;
+            }
+
+            std::string single_message{};
+            uint64_t message_size = 0;
+            uint64_t max_message_size = sik::common::SIMPL_DATA_SIZE;
+
+            for (const std::string& file : files) {
+                if ((file.length() + message_size > max_message_size)) {
+                    auto cmd = sik::common::make_command(
+                            sik::common::MY_LIST,
+                            clients_packet.get_cmd_seq(),
+                            sik::common::to_vector(single_message)
+                            );
+
+                    sendto(cmd, single_message.length(), clients_packet.client);
+
+                    single_message.clear();
+                    single_message.append(file);
+                    message_size = file.length();
+                } else {
+                    single_message.append(file);
+                    message_size += file.length();
+
+                    if (message_size + 1 <= max_message_size) {
+                        single_message.append("\n");
+                        ++message_size;
+                    }
+                }
+            }
+
+            auto cmd = sik::common::make_command(
+                    sik::common::MY_LIST,
+                    clients_packet.get_cmd_seq(),
+                    sik::common::to_vector(single_message)
+            );
+
+            sendto(cmd, single_message.length(), clients_packet.client);
+        }
     };
 }
 

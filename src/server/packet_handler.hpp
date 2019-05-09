@@ -29,8 +29,11 @@ namespace sik::server {
             std::cout << "Got message titled: " << message << std::endl;
 
             if (str_message.compare(cm::HELLO) == cm::OK) {
-                pack_simpl(packet);
+                pack_simpl(packet); // TODO use pack instead of pack_simpl with enum
                 return action::act::hello;
+            } else if (str_message.compare(cm::LIST) == cm::OK) {
+                pack_simpl(packet);
+                return action::act::list;
             }
 
             return action::act::invalid;

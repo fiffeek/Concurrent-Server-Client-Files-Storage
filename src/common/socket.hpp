@@ -51,9 +51,9 @@ namespace sik::common {
 
         void sendto(sik::common::cmplx_cmd& cmd, size_t data_size, const sockaddr_in& remote_address) {
             cmd.cmd_seq = htobe64(cmd.cmd_seq);
-            std::vector<sik::common::byte> aux(sik::common::CMPL_SIZE + data_size);
+            std::vector<sik::common::byte> aux(sik::common::CMPLX_HEADER + data_size);
 
-            memcpy(aux.data(), cmd.title, sik::common::CMPL_SIZE + data_size);
+            memcpy(aux.data(), cmd.title, sik::common::CMPLX_HEADER + data_size);
             sendto(aux, remote_address);
         }
 

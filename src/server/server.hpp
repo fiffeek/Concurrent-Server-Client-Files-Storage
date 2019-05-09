@@ -30,6 +30,11 @@ namespace sik::server {
             socket.sendto(cmd, data.mcast_addr.length(), packet.client);
         }
 
+        void list(sik::common::single_packet& packet) {
+            std::vector<std::string> query = fldr.filter_and_get_files(packet.data_to_string());
+            socket.send_files_to(query, packet);
+        }
+
         void run() {
             fldr.index_files();
             socket.connect();
@@ -39,6 +44,9 @@ namespace sik::server {
                 sik::common::single_packet packet = socket.receive();
 
                 switch(packet_handler.handle_packet(packet)) {
+                    case action::act::list:
+                        list(packet);
+                        break;
                     case action::act::hello:
                         hello(packet);
                         break;
