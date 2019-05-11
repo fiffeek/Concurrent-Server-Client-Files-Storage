@@ -37,6 +37,9 @@ namespace sik::server {
             } else if (str_message.compare(cm::GET) == cm::OK) {
                 pack_simpl(packet);
                 return action::act::get;
+            } else if (str_message.compare(cm::DEL) == cm::OK) {
+                pack_simpl(packet);
+                return action::act::del;
             }
 
             return action::act::invalid;

@@ -81,6 +81,21 @@ namespace sik::server {
             return single_path.append(file);
         }
 
+        void remove(const std::string& filename) {
+            if (!contains(filename))
+                throw std::runtime_error("File does not exist");
+
+            fs::path single_path{folder_name};
+            single_path.append(filename);
+
+            if (::remove(single_path.string().c_str()) < 0)
+                throw std::runtime_error("Could not remove the file");
+
+            files.erase(filename);
+            folder_size -= file_size[filename];
+            file_size.erase(filename);
+        }
+
         friend std::ostream& operator<<(std::ostream& os, folder& fldr);
 
     private:

@@ -61,6 +61,7 @@ namespace sik::server {
             auto start = std::chrono::system_clock::now();
             int msg_sock = -1;
 
+            // TODO ask, what if someone else connects? (packet.client != client_address)
             while (get_diff(start) < data.timeout && msg_sock == -1) {
                 msg_sock = accept(sock.get_sock(), (sockaddr *) &client_address, &client_address_len);
             }
@@ -83,6 +84,14 @@ namespace sik::server {
             file_sender.detach();
         }
 
+        void del(sik::common::single_packet& packet) {
+            std::string filename = packet.data_to_string();
+            if (!fldr.contains(filename))
+                return;
+
+            fldr.remove(filename); // TODO ask, this throws?
+        }
+
         void run() {
             fldr.index_files();
             socket.connect();
@@ -92,6 +101,9 @@ namespace sik::server {
                 sik::common::single_packet packet = socket.receive();
 
                 switch(packet_handler.handle_packet(packet)) {
+                    case action::act::del:
+                        del(packet);
+                        break;
                     case action::act::get:
                         get(packet);
                         break;

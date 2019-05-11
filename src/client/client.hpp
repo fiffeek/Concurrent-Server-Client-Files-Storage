@@ -66,6 +66,17 @@ namespace sik::client {
             }
         }
 
+        void remove(const std::string& additional_data) {
+            sik::common::single_packet packet{};
+            auto cmd = sik::common::make_command(
+                    sik::common::DEL,
+                    cmd_seq.get(),
+                    sik::common::to_vector(additional_data)
+                    );
+
+            socket.sendto(cmd, additional_data.length());
+        }
+
         void search(const std::string& additional_data) {
             sik::common::single_packet packet{};
             auto cmd = sik::common::make_command(
@@ -145,6 +156,9 @@ namespace sik::client {
                 std::string additional_data;
 
                 switch (input_parser.parse_line(additional_data)) {
+                    case sik::client::input::act::remove:
+                        remove(additional_data);
+                        break;
                     case sik::client::input::act::fetch:
                         fetch(additional_data);
                         break;
