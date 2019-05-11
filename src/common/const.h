@@ -27,6 +27,11 @@ namespace sik::common {
     constexpr int TTL_VALUE = 4;
     constexpr uint64_t NSEC = 1000000000;
     constexpr uint64_t TO_MICRO = 1000;
+    constexpr int ANY_PORT = 0;
+    constexpr int QUEUE_LENGTH = 1;
+    constexpr size_t CHUNKS_SIZE = 512000;
+    const char* OPEN_OPT = "rb";
+    const char* CREATE_OPT = "w";
 }
 
 #endif //SIK_ZAD2_CONST_H

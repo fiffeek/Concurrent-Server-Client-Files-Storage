@@ -8,13 +8,10 @@
 #include "../common/message.hpp"
 
 namespace sik::client {
+    using sik::common::invalid_packet_log;
+
     class message_logger {
     public:
-        void invalid_packet_log(const char* mess, const sockaddr_in& node) {
-            std::cerr << "[PCKG ERROR] Skipping invalid package from "
-                      << sik::common::get_addr(node) << ":" << sik::common::get_port(node) << "." << mess << std::endl;
-        }
-
         void action_not_recognised(const sockaddr_in& sock) {
             invalid_packet_log(invalid_action, sock);
         }
@@ -44,6 +41,28 @@ namespace sik::client {
 
         void invalid_file_name_log() {
             std::cout << "Given filename is invalid." << std::endl;
+        }
+
+        void cant_receive() {
+            std::cerr << "Cant receive the packet with port specified" << std::endl; // TODO ASK ABOUT IT
+        }
+
+        void file_downloaded(const std::string& filename, const sockaddr_in& server, uint16_t port) {
+            std::cout << "File " << filename << " downloaded "
+                      << "(" << sik::common::get_addr(server)
+                      << ":" << std::to_string(port)
+                      << ")" << std::endl;
+        }
+
+        void download_interrupted(
+                const std::string& filename,
+                const sockaddr_in& server,
+                uint16_t port,
+                const char* desc) {
+            std::cout << "File " << filename << " downloading failed "
+                      << "(" << sik::common::get_addr(server)
+                      << ":" << std::to_string(port)
+                      << ")" << std::string{desc} << std::endl;
         }
 
     private:

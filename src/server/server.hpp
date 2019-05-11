@@ -4,13 +4,20 @@
 #include <iostream>
 #include <cstdint>
 #include <dirent.h>
+#include <thread>
 #include "../common/message.hpp"
 #include "folder_handler.hpp"
 #include "server_socket.hpp"
 #include "packet_handler.hpp"
+#include "logger.hpp"
+#include "tcp_socket_factory.hpp"
+#include "../common/tcp_socket.hpp"
+#include "../common/file.hpp"
 
 namespace sik::server {
     using message = sik::common::server_message;
+    using sik::common::get_diff;
+    using sik::common::tcp_socket;
 
     class server {
     public:
@@ -35,6 +42,47 @@ namespace sik::server {
             socket.send_files_to(query, packet);
         }
 
+        void send_file(sik::common::single_packet packet) {
+            tcp_socket sock{factory.spawn_socket()};
+            std::string filename = packet.data_to_string();
+
+            auto cmd = sik::common::make_command(
+                    sik::common::CONNECT_ME,
+                    packet.get_cmd_seq(),
+                    (uint64_t) sock.get_sock_port(),
+                    sik::common::to_vector(filename)
+                    );
+
+            socket.sendto(cmd, filename.length(), packet.client);
+            sock.make_accept_noblock();
+
+            sockaddr_in client_address{};
+            socklen_t client_address_len = sizeof client_address;
+            auto start = std::chrono::system_clock::now();
+            int msg_sock = -1;
+
+            while (get_diff(start) < data.timeout && msg_sock == -1) {
+                msg_sock = accept(sock.get_sock(), (sockaddr *) &client_address, &client_address_len);
+            }
+
+            if (msg_sock < 0)
+                return;
+
+            tcp_socket client{msg_sock};
+            sik::common::file scheduled_file{fldr.file_path(filename)};
+            scheduled_file.sendto(client);
+        }
+
+        void get(sik::common::single_packet& packet) {
+            if (!fldr.contains(packet.data_to_string())) {
+                logger.invalid_file(packet.client);
+                return;
+            }
+
+            std::thread file_sender(&server::send_file, this, packet);
+            file_sender.detach();
+        }
+
         void run() {
             fldr.index_files();
             socket.connect();
@@ -44,6 +92,9 @@ namespace sik::server {
                 sik::common::single_packet packet = socket.receive();
 
                 switch(packet_handler.handle_packet(packet)) {
+                    case action::act::get:
+                        get(packet);
+                        break;
                     case action::act::list:
                         list(packet);
                         break;
@@ -63,6 +114,8 @@ namespace sik::server {
         folder fldr;
         server_socket socket;
         handler packet_handler;
+        message_logger logger;
+        socket_factory factory;
     };
 }
 

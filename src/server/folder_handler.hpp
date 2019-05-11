@@ -35,6 +35,10 @@ namespace sik::server {
         : folder_name(folderName), folder_size(0), max_space(max_space) {}
 
         void index_files() {
+            files.clear();
+            file_size.clear();
+            folder_size = 0;
+
             const fs::path directory{folder_name};
 
             if (fs::exists(directory) && fs::is_directory(directory)) {
@@ -66,6 +70,15 @@ namespace sik::server {
 
         uint64_t get_free_space() {
             return max_space - folder_size;
+        }
+
+        bool contains(const std::string& file) {
+            return files.find(file) != files.end();
+        }
+
+        fs::path file_path(const std::string& file) {
+            fs::path single_path{folder_name};
+            return single_path.append(file);
         }
 
         friend std::ostream& operator<<(std::ostream& os, folder& fldr);

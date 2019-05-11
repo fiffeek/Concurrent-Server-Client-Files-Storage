@@ -13,13 +13,25 @@
 #include "results_container.hpp"
 #include <bits/types.h>
 #include <thread>
+#include "../common/tcp_socket.hpp"
+#include <boost/filesystem.hpp>
+#include "../common/file.hpp"
 
 namespace sik::client {
     using message = sik::common::client_message;
+    using sik::common::get_diff;
+    using sik::common::fill_timeout;
+    using sik::common::tcp_socket;
+    namespace fs = boost::filesystem;
 
     class client {
     public:
-        explicit client(const message& data) : data(data), socket(data) {}
+        explicit client(const message& data) : data(data), socket(data) {
+            if (!fs::is_directory(data.folder)) // TODO maybe we should create dir here?
+                throw std::runtime_error("Given directory is not a proper directory");
+
+            fldr = fs::path{data.folder};
+        }
 
         bool is_packet_valid(cm::single_packet& packet, action::act action_type, cm::pack_type packet_type) {
             if (packet_type == cm::pack_type::simpl) {
@@ -44,7 +56,7 @@ namespace sik::client {
             timeval read_timeout{};
 
             while (get_diff(start) < data.timeout) {
-                fill_timeout(read_timeout, start);
+                fill_timeout(read_timeout, start, data.timeout);
                 socket.set_read_timeout(read_timeout);
 
                 if (socket.receive(packet) > 0
@@ -68,7 +80,7 @@ namespace sik::client {
             timeval read_timeout{};
 
             while (get_diff(start) < data.timeout) {
-                fill_timeout(read_timeout, start);
+                fill_timeout(read_timeout, start, data.timeout);
                 socket.set_read_timeout(read_timeout);
 
                 if (socket.receive(packet) > 0
@@ -78,12 +90,17 @@ namespace sik::client {
             }
         }
 
-        void fetch_file(const sockaddr_in& server, const std::string& additional_data) {
-            auto cmd = sik::common::make_command(
-                    sik::common::GET,
-                    cmd_seq.get(),
-                    sik::common::to_vector(additional_data)
-            );
+        void fetch_file(const sockaddr_in& server, const std::string& additional_data, uint16_t port) {
+            tcp_socket sock{};
+            sock.spawn_socket(server, (uint16_t) port);
+
+            try {
+                sik::common::file scheduled_file{fldr};
+                scheduled_file.createfrom(sock, additional_data);
+                logger.file_downloaded(additional_data, server, port);
+            } catch (std::exception& e) {
+                logger.download_interrupted(additional_data, server, port, e.what());
+            }
         }
 
         void fetch(const std::string& additional_data) {
@@ -92,12 +109,31 @@ namespace sik::client {
                 return;
             }
 
-            std::thread getter(
-                    &client::fetch_file,
-                    this,
-                    results_container.get_server(additional_data), additional_data
-                    );
-            getter.detach();
+            sik::common::single_packet packet{};
+            auto cmd = sik::common::make_command(
+                    sik::common::GET,
+                    cmd_seq.get(),
+                    sik::common::to_vector(additional_data)
+            );
+
+            socket.sendto(cmd, additional_data.length());
+
+            if (socket.receive(packet) <= 0) {
+                logger.cant_receive();
+                return;
+            }
+
+            if (is_packet_valid(packet, sik::client::action::act::connect_me, cm::pack_type::cmplx)) {
+                std::thread getter(
+                        &client::fetch_file,
+                        this,
+                        results_container.get_server(additional_data),
+                        additional_data,
+                        (uint16_t) packet.cmplx->param
+                );
+
+                getter.detach();
+            }
         }
 
         void run() {
@@ -168,17 +204,6 @@ namespace sik::client {
             return true;
         }
 
-        void fill_timeout(timeval& read_timeout, const std::chrono::time_point<std::chrono::system_clock>& start) {
-            auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start);
-            uint64_t rest = data.timeout * sik::common::NSEC - usec.count();
-            read_timeout.tv_sec = rest / sik::common::NSEC;
-            read_timeout.tv_usec = (rest % sik::common::NSEC) / sik::common::TO_MICRO;
-        }
-
-        double get_diff(const std::chrono::time_point<std::chrono::system_clock>& start) {
-            return (std::chrono::duration<double>(std::chrono::system_clock::now() - start)).count();
-        }
-
         message data;
         parser input_parser;
         sequence cmd_seq;
@@ -186,6 +211,7 @@ namespace sik::client {
         handler packet_handler;
         message_logger logger;
         container results_container;
+        fs::path fldr;
     };
 }
 
