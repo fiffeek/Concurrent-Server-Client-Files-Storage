@@ -156,7 +156,7 @@ namespace sik::client {
                         break;
                     default:
                     case sik::client::input::act::invalid:
-                        input_parser.invalid_input_log();
+                        logger.invalid_input_log();
                         break;
                     case sik::client::input::act::exit:
                         should_continue = false;

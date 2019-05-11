@@ -65,6 +65,10 @@ namespace sik::client {
                       << ")" << std::string{desc} << std::endl;
         }
 
+        void invalid_input_log() {
+            std::cerr << "Input is not correct. Skipping." << std::endl;
+        }
+
     private:
         static constexpr const char* invalid_action = "Action not recognised.";
         static constexpr const char* invalid_packet = "Packet corrupted.";

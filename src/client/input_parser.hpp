@@ -61,10 +61,6 @@ namespace sik::client {
             return input::act::invalid;
         }
 
-        void invalid_input_log() {
-            std::cerr << "Input is not correct. Skipping." << std::endl;
-        }
-
     private:
         std::regex discover;
         std::regex empty_search;
