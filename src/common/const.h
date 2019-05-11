@@ -25,6 +25,8 @@ namespace sik::common {
     const char* CAN_ADD = "CAN_ADD";
     constexpr int POLLS = 64;
     constexpr int TTL_VALUE = 4;
+    constexpr uint64_t NSEC = 1000000000;
+    constexpr uint64_t TO_MICRO = 1000;
 }
 
 #endif //SIK_ZAD2_CONST_H

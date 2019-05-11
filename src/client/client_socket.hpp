@@ -16,6 +16,10 @@ namespace sik::client {
                 : socket(data) {}
 
         void connect() override {
+            if (sock != -1) {
+                close();
+            }
+
             if ((sock = ::socket(AF_INET, SOCK_DGRAM, 0)) < 0)
                 throw std::runtime_error("Could not open a new socket");
 
@@ -48,6 +52,11 @@ namespace sik::client {
 
         void sendto(const std::vector<sik::common::byte>& mess) {
             sik::common::socket::sendto(mess, remote_address);
+        }
+
+        void set_read_timeout(const timeval& timeout) {
+            if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) < 0)
+                throw std::runtime_error("Could not set socket options");
         }
 
     private:

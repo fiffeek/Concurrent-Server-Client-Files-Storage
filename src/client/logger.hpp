@@ -42,6 +42,10 @@ namespace sik::client {
             }
         }
 
+        void invalid_file_name_log() {
+            std::cout << "Given filename is invalid." << std::endl;
+        }
+
     private:
         static constexpr const char* invalid_action = "Action not recognised.";
         static constexpr const char* invalid_packet = "Packet corrupted.";

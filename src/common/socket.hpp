@@ -37,7 +37,7 @@ namespace sik::common {
 
         ~socket() {
             if (sock >= 0) {
-                close(sock);
+                ::close(sock);
             }
         }
 
@@ -64,6 +64,16 @@ namespace sik::common {
             if (::sendto(sock, mess.data(), length, 0,
                          reinterpret_cast<const sockaddr *>(&remote_address), sizeof remote_address) < 0)
                 throw std::runtime_error("Cannot send the data");
+        }
+
+        void close() {
+            if (sock >= 0) {
+                if (::close(sock) < 0) {
+                    throw std::runtime_error("Could not close the socket");
+                }
+
+                sock = -1;
+            }
         }
 
     protected:

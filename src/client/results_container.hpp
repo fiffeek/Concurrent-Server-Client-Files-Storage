@@ -35,6 +35,18 @@ namespace sik::client {
             belongs.clear();
         }
 
+        bool contains(const std::string& file) {
+            return belongs.find(file) != belongs.end();
+        }
+
+        sockaddr_in get_server(const std::string& file) {
+            if (!contains(file)) {
+                throw std::runtime_error("Could not get the file from container.");
+            }
+
+            return belongs[file];
+        }
+
     private:
         std::vector<std::string> files;
         std::unordered_map<std::string, sockaddr_in> belongs;

@@ -65,13 +65,7 @@ namespace sik::server {
 
             for (const std::string& file : files) {
                 if ((file.length() + message_size > max_message_size)) {
-                    auto cmd = sik::common::make_command(
-                            sik::common::MY_LIST,
-                            clients_packet.get_cmd_seq(),
-                            sik::common::to_vector(single_message)
-                            );
-
-                    sendto(cmd, single_message.length(), clients_packet.client);
+                    single_send(single_message, clients_packet);
 
                     single_message.clear();
                     single_message.append(file);
@@ -86,6 +80,14 @@ namespace sik::server {
                     }
                 }
             }
+
+            single_send(single_message, clients_packet);
+        }
+
+    private:
+        void single_send(std::string& single_message, sik::common::single_packet& clients_packet) {
+            if (single_message[single_message.length() - 1] == '\n')
+                single_message.pop_back();
 
             auto cmd = sik::common::make_command(
                     sik::common::MY_LIST,

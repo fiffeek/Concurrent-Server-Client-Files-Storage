@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstdint>
+#include <chrono>
 #include "../common/message.hpp"
 #include "input_parser.hpp"
 #include "sequence_iter.hpp"
@@ -10,6 +11,8 @@
 #include "packet_handler.hpp"
 #include "logger.hpp"
 #include "results_container.hpp"
+#include <bits/types.h>
+#include <thread>
 
 namespace sik::client {
     using message = sik::common::client_message;
@@ -37,10 +40,15 @@ namespace sik::client {
                     );
 
             socket.sendto(cmd, 0);
-            sleep(data.timeout);
+            auto start = std::chrono::system_clock::now();
+            timeval read_timeout{};
 
-            while (socket.receive(packet) > 0) {
-                if (is_packet_valid(packet, sik::client::action::act::good_day, cm::pack_type::cmplx)) {
+            while (get_diff(start) < data.timeout) {
+                fill_timeout(read_timeout, start);
+                socket.set_read_timeout(read_timeout);
+
+                if (socket.receive(packet) > 0
+                    && is_packet_valid(packet, sik::client::action::act::good_day, cm::pack_type::cmplx)) {
                     logger.server_found(packet);
                 }
             }
@@ -56,12 +64,40 @@ namespace sik::client {
 
             socket.sendto(cmd, additional_data.length());
             results_container.clear();
+            auto start = std::chrono::system_clock::now();
+            timeval read_timeout{};
 
-            while (socket.receive(packet) > 0) {
-                if (is_packet_valid(packet, sik::client::action::act::my_list, cm::pack_type::simpl)) {
+            while (get_diff(start) < data.timeout) {
+                fill_timeout(read_timeout, start);
+                socket.set_read_timeout(read_timeout);
+
+                if (socket.receive(packet) > 0
+                    && is_packet_valid(packet, sik::client::action::act::my_list, cm::pack_type::simpl)) {
                     logger.files_log(packet, results_container.add_files(packet));
                 }
             }
+        }
+
+        void fetch_file(const sockaddr_in& server, const std::string& additional_data) {
+            auto cmd = sik::common::make_command(
+                    sik::common::GET,
+                    cmd_seq.get(),
+                    sik::common::to_vector(additional_data)
+            );
+        }
+
+        void fetch(const std::string& additional_data) {
+            if (!results_container.contains(additional_data)) {
+                logger.invalid_file_name_log();
+                return;
+            }
+
+            std::thread getter(
+                    &client::fetch_file,
+                    this,
+                    results_container.get_server(additional_data), additional_data
+                    );
+            getter.detach();
         }
 
         void run() {
@@ -73,6 +109,9 @@ namespace sik::client {
                 std::string additional_data;
 
                 switch (input_parser.parse_line(additional_data)) {
+                    case sik::client::input::act::fetch:
+                        fetch(additional_data);
+                        break;
                     case sik::client::input::act::discover:
                         discover();
                         break;
@@ -127,6 +166,17 @@ namespace sik::client {
             }
 
             return true;
+        }
+
+        void fill_timeout(timeval& read_timeout, const std::chrono::time_point<std::chrono::system_clock>& start) {
+            auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start);
+            uint64_t rest = data.timeout * sik::common::NSEC - usec.count();
+            read_timeout.tv_sec = rest / sik::common::NSEC;
+            read_timeout.tv_usec = (rest % sik::common::NSEC) / sik::common::TO_MICRO;
+        }
+
+        double get_diff(const std::chrono::time_point<std::chrono::system_clock>& start) {
+            return (std::chrono::duration<double>(std::chrono::system_clock::now() - start)).count();
         }
 
         message data;
