@@ -16,6 +16,7 @@
 #include "../common/tcp_socket.hpp"
 #include <boost/filesystem.hpp>
 #include "../common/file.hpp"
+#include "servers_list.hpp"
 
 namespace sik::client {
     using message = sik::common::client_message;
@@ -33,13 +34,17 @@ namespace sik::client {
             fldr = fs::path{data.folder};
         }
 
-        bool is_packet_valid(cm::single_packet& packet, action::act action_type, cm::pack_type packet_type) {
+        bool is_packet_valid(
+                cm::single_packet& packet,
+                action::act action_type,
+                cm::pack_type packet_type,
+                bool should_log = true) {
             if (packet_type == cm::pack_type::simpl) {
-                return is_simpl_valid(packet, action_type);
+                return is_simpl_valid(packet, action_type, should_log);
             } else if (packet_type == cm::pack_type::cmplx) {
-                return is_cmplx_valid(packet, action_type);
+                return is_cmplx_valid(packet, action_type, should_log);
             } else {
-                throw std::runtime_error("Packet type not recignised");
+                throw std::runtime_error("Packet type not recognised");
             }
         }
 
@@ -52,6 +57,7 @@ namespace sik::client {
                     );
 
             socket.sendto(cmd, 0);
+            servers.clear();
             auto start = std::chrono::system_clock::now();
             timeval read_timeout{};
 
@@ -62,8 +68,11 @@ namespace sik::client {
                 if (socket.receive(packet) > 0
                     && is_packet_valid(packet, sik::client::action::act::good_day, cm::pack_type::cmplx)) {
                     logger.server_found(packet);
+                    servers.add_server(packet);
                 }
             }
+
+            socket.reset_read_timeout();
         }
 
         void remove(const std::string& additional_data) {
@@ -101,11 +110,11 @@ namespace sik::client {
             }
         }
 
-        void fetch_file(const sockaddr_in& server, const std::string& additional_data, uint16_t port) {
-            tcp_socket sock{};
-            sock.spawn_socket(server, (uint16_t) port);
-
+        void fetch_file(sockaddr_in server, std::string additional_data, uint16_t port) {
             try {
+                tcp_socket sock{};
+                sock.spawn_socket(server, (uint16_t) port);
+
                 sik::common::file scheduled_file{fldr};
                 scheduled_file.createfrom(sock, additional_data);
                 logger.file_downloaded(additional_data, server, port);
@@ -147,6 +156,77 @@ namespace sik::client {
             }
         }
 
+        void upload_file(sockaddr_in server, std::string additional_data, uint16_t port) {
+            try {
+                tcp_socket sock{};
+                sock.spawn_socket(server, (uint16_t) port);
+
+                sik::common::file scheduled_file{fs::path{additional_data}};
+                scheduled_file.sendto(sock);
+                logger.file_uploaded(additional_data, server, port);
+            } catch (std::exception& e) {
+                logger.upload_interrupted(additional_data, server, port, e.what());
+            }
+        }
+
+        void upload(const std::string& additional_data) {
+            sik::common::file scheduled_file{fs::path{additional_data}};
+
+            if (!scheduled_file.check_open()) {
+                logger.file_does_not_exist(additional_data);
+                return;
+            }
+
+            discover();
+            servers.sort();
+
+            auto iter = servers.iterator();
+            auto filename = scheduled_file.get_filename();
+            bool found_server = false;
+            if (servers.empty() || !servers.can_hold(iter, scheduled_file.get_file_size())) {
+                logger.file_too_big(additional_data);
+                return;
+            }
+
+            while (servers.can_hold(iter, scheduled_file.get_file_size())) {
+                sik::common::single_packet packet{};
+                auto cmd = sik::common::make_command(
+                        sik::common::ADD,
+                        cmd_seq.get(),
+                        scheduled_file.get_file_size(),
+                        sik::common::to_vector(filename)
+                        );
+
+                socket.sendto(cmd, filename.length(), servers.get_server(iter));
+                socket.receive(packet);
+
+                if (is_packet_valid(packet, sik::client::action::act::no_way, cm::pack_type::simpl, false)) {
+                    if (servers.has_next(iter))
+                        servers.next(iter);
+                    else
+                        break;
+                } else if (is_packet_valid(packet, sik::client::action::act::can_add, cm::pack_type::cmplx, false)) {
+                    found_server = true;
+                    std::thread sender(
+                            &client::upload_file,
+                            this,
+                            packet.client,
+                            additional_data,
+                            (uint16_t) packet.cmplx->param
+                    );
+
+                    sender.detach();
+                    break;
+                } else {
+                    is_packet_valid(packet, sik::client::action::act::can_add, cm::pack_type::cmplx, true);
+                    break;
+                }
+            }
+
+            if (!found_server)
+                logger.file_too_big(additional_data);
+        }
+
         void run() {
             std::cout << "client is on" << std::endl;
             socket.connect();
@@ -156,6 +236,9 @@ namespace sik::client {
                 std::string additional_data;
 
                 switch (input_parser.parse_line(additional_data)) {
+                    case sik::client::input::act::upload:
+                        upload(additional_data);
+                        break;
                     case sik::client::input::act::remove:
                         remove(additional_data);
                         break;
@@ -182,36 +265,36 @@ namespace sik::client {
         }
 
     private:
-        bool is_cmplx_valid(cm::single_packet& packet, action::act action_type) {
+        bool is_cmplx_valid(cm::single_packet& packet, action::act action_type, bool log) {
             if (packet_handler.handle_packet(packet) != action_type) {
-                logger.action_not_recognised(packet.client);
+                if (log) logger.action_not_recognised(packet.client);
                 return false;
             } else if (!packet.cmplx.has_value()) {
-                logger.packet_corrupted(packet.client);
+                if (log) logger.packet_corrupted(packet.client);
                 return false;
             } else if (packet.cmplx->cmd_seq != cmd_seq.get()) {
-                logger.sequence_corrupted(packet.client);
+                if (log) logger.sequence_corrupted(packet.client);
                 return false;
             } else if (packet.get_data_size() < 0) {
-                logger.packet_corrupted(packet.client);
+                if (log) logger.packet_corrupted(packet.client);
                 return false;
             }
 
             return true;
         }
 
-        bool is_simpl_valid(cm::single_packet& packet, action::act action_type) {
+        bool is_simpl_valid(cm::single_packet& packet, action::act action_type, bool log) {
             if (packet_handler.handle_packet(packet) != action_type) {
-                logger.action_not_recognised(packet.client);
+                if (log) logger.action_not_recognised(packet.client);
                 return false;
             } else if (!packet.simpl.has_value()) {
-                logger.packet_corrupted(packet.client);
+                if (log) logger.packet_corrupted(packet.client);
                 return false;
             } else if (packet.simpl->cmd_seq != cmd_seq.get()) {
-                logger.sequence_corrupted(packet.client);
+                if (log) logger.sequence_corrupted(packet.client);
                 return false;
             } else if (packet.get_data_size() < 0) {
-                logger.packet_corrupted(packet.client);
+                if (log) logger.packet_corrupted(packet.client);
                 return false;
             }
 
@@ -225,6 +308,7 @@ namespace sik::client {
         handler packet_handler;
         message_logger logger;
         container results_container;
+        servers_list servers;
         fs::path fldr;
     };
 }

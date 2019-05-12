@@ -76,6 +76,22 @@ namespace sik::server {
             return max_space - folder_size;
         }
 
+        bool reserve(uint64_t space) {
+            std::scoped_lock lock(mtx);
+
+            if (max_space - folder_size < space)
+                return false;
+
+            folder_size += space;
+            return true;
+        }
+
+        void unreserve(uint64_t space) {
+            std::scoped_lock lock(mtx);
+
+            folder_size -= space;
+        }
+
         bool contains(const std::string& file) {
             std::scoped_lock lock(mtx);
 
@@ -85,6 +101,11 @@ namespace sik::server {
         fs::path file_path(const std::string& file) {
             fs::path single_path{folder_name};
             return single_path.append(file);
+        }
+
+        void add_file(const std::string& filename, uint64_t filesize) {
+            files.insert(filename);
+            file_size[filename] = filesize;
         }
 
         void remove(const std::string& filename) {

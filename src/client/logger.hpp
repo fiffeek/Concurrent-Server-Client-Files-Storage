@@ -65,8 +65,33 @@ namespace sik::client {
                       << ")" << std::string{desc} << std::endl;
         }
 
+        void file_uploaded(const std::string& filename, const sockaddr_in& server, uint16_t port) {
+            std::cout << "File " << filename << " uploaded "
+                      << "(" << sik::common::get_addr(server)
+                      << ":" << std::to_string(port)
+                      << ")" << std::endl;
+        }
+
+        void upload_interrupted(const std::string& filename,
+                                const sockaddr_in& server,
+                                uint16_t port,
+                                const char* desc) {
+            std::cout << "File " << filename << " uploading failed "
+                      << "(" << sik::common::get_addr(server)
+                      << ":" << std::to_string(port)
+                      << ")" << std::string{desc} << std::endl;
+        }
+
         void invalid_input_log() {
             std::cerr << "Input is not correct. Skipping." << std::endl;
+        }
+
+        void file_does_not_exist(const std::string& file) {
+            std::cout << "File " << file << " does not exist" << std::endl;
+        }
+
+        void file_too_big(const std::string& file) {
+            std::cout << "File " << file << " too big" << std::endl;
         }
 
     private:

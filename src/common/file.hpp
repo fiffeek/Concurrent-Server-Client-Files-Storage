@@ -15,8 +15,8 @@ namespace sik::common {
 
     class file {
     public:
-        file(const fs::path &path)
-                : file_path(path) {}
+        file(fs::path path)
+                : file_path(path), file_ptr(nullptr) {}
 
         void sendto(sik::common::tcp_socket& sock) {
             if (!fs::is_regular_file(file_path))
@@ -60,8 +60,35 @@ namespace sik::common {
         }
 
         ~file() {
-            fclose(file_ptr);
+            if (file_ptr != nullptr) {
+                fclose(file_ptr);
+            }
         };
+
+        bool check_open() {
+            if (!fs::is_regular_file(file_path))
+                return false;
+
+            try {
+                open_file(OPEN_OPT);
+                fclose(file_ptr);
+                file_ptr = nullptr;
+
+                return true;
+            } catch (std::exception& e) {
+                file_ptr = nullptr;
+
+                return false;
+            }
+        }
+
+        uint64_t get_file_size() {
+            return fs::file_size(file_path);
+        }
+
+        std::string get_filename() {
+            return file_path.filename().string();
+        }
 
     private:
         void open_file(const char* opts) {

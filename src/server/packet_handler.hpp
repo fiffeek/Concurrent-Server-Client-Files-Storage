@@ -40,6 +40,9 @@ namespace sik::server {
             } else if (str_message.compare(cm::DEL) == cm::OK) {
                 pack_simpl(packet);
                 return action::act::del;
+            } else if (str_message.compare(cm::ADD) == cm::OK) {
+                pack_cmplx(packet);
+                return action::act::add;
             }
 
             return action::act::invalid;

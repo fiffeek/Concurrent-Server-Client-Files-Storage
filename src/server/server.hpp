@@ -54,17 +54,7 @@ namespace sik::server {
                     );
 
             socket.sendto(cmd, filename.length(), packet.client);
-            sock.make_accept_noblock();
-
-            sockaddr_in client_address{};
-            socklen_t client_address_len = sizeof client_address;
-            auto start = std::chrono::system_clock::now();
-            int msg_sock = -1;
-
-            // TODO ask, what if someone else connects? (packet.client != client_address)
-            while (get_diff(start) < data.timeout && msg_sock == -1) {
-                msg_sock = accept(sock.get_sock(), (sockaddr *) &client_address, &client_address_len);
-            }
+            int msg_sock = setup_clients_sock(sock);
 
             if (msg_sock < 0)
                 return;
@@ -92,6 +82,53 @@ namespace sik::server {
             fldr.remove(filename); // TODO ask, this throws?
         }
 
+        void receive_file(sik::common::single_packet packet, uint64_t reserved_space) {
+            tcp_socket sock{factory.spawn_socket()};
+            auto cmd = sik::common::make_command(
+                    sik::common::CAN_ADD,
+                    packet.get_cmd_seq(),
+                    (uint64_t) sock.get_sock_port(),
+                    std::vector<sik::common::byte>{}
+            );
+
+            try {
+                socket.sendto(cmd, 0, packet.client);
+                int msg_sock = setup_clients_sock(sock);
+
+                if (msg_sock < 0)
+                    throw std::runtime_error("Bad socket");
+
+                tcp_socket client{msg_sock};
+                sik::common::file scheduled_file{fldr.file_path("")};
+                scheduled_file.createfrom(client, packet.data_to_string());
+                fldr.add_file(packet.data_to_string(), reserved_space);
+            } catch (std::exception& e) {
+                fldr.unreserve(reserved_space);
+            }
+        }
+
+        void add(sik::common::single_packet& packet) {
+            std::string filename = packet.data_to_string();
+            uint64_t size = packet.cmplx->param;
+
+            if (fldr.contains(filename)
+                || filename.empty()
+                || filename.find("/n") != std::string::npos
+                || !fldr.reserve(size)) {
+                auto cmd = sik::common::make_command(
+                        sik::common::NO_WAY,
+                        packet.get_cmd_seq(),
+                        sik::common::to_vector(filename)
+                );
+
+                socket.sendto(cmd, filename.length(), packet.client);
+                return;
+            }
+
+            std::thread file_receiver(&server::receive_file, this, packet, size);
+            file_receiver.detach();
+        }
+
         void run() {
             fldr.index_files();
             socket.connect();
@@ -101,6 +138,9 @@ namespace sik::server {
                 sik::common::single_packet packet = socket.receive();
 
                 switch(packet_handler.handle_packet(packet)) {
+                    case action::act::add:
+                        add(packet);
+                        break;
                     case action::act::del:
                         del(packet);
                         break;
@@ -122,6 +162,22 @@ namespace sik::server {
         }
 
     private:
+        int setup_clients_sock(tcp_socket& sock) {
+            sock.make_accept_noblock();
+
+            sockaddr_in client_address{};
+            socklen_t client_address_len = sizeof client_address;
+            auto start = std::chrono::system_clock::now();
+            int msg_sock = -1;
+
+            // TODO ask, what if someone else connects? (packet.client != client_address)
+            while (get_diff(start) < data.timeout && msg_sock == -1) {
+                msg_sock = accept(sock.get_sock(), (sockaddr *) &client_address, &client_address_len);
+            }
+
+            return msg_sock;
+        }
+
         message data;
         folder fldr;
         server_socket socket;

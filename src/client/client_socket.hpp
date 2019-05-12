@@ -54,9 +54,24 @@ namespace sik::client {
             sik::common::socket::sendto(mess, remote_address);
         }
 
+        void sendto(sik::common::cmplx_cmd& cmd, size_t data_size, const sockaddr_in& addr) {
+            sik::common::socket::sendto(cmd, data_size, addr);
+        }
+
+        void sendto(sik::common::simpl_cmd& cmd, size_t data_size, const sockaddr_in& addr) {
+            sik::common::socket::sendto(cmd, data_size, addr);
+        }
+
         void set_read_timeout(const timeval& timeout) {
             if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) < 0)
                 throw std::runtime_error("Could not set socket options");
+        }
+
+        void reset_read_timeout() {
+            timeval read_timeout{};
+            read_timeout.tv_sec = 1;
+
+            set_read_timeout(read_timeout);
         }
 
     private:

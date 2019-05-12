@@ -36,6 +36,12 @@ namespace sik::client {
             } else if (str_message.compare(cm::CONNECT_ME) == cm::OK) {
                 pack(packet, sik::common::pack_type::cmplx);
                 return action::act::connect_me;
+            } else if (str_message.compare(cm::NO_WAY) == cm::OK) {
+                pack(packet, sik::common::pack_type::simpl);
+                return action::act::no_way;
+            } else if (str_message.compare(cm::CAN_ADD) == cm::OK) {
+                pack(packet, sik::common::pack_type::cmplx);
+                return action::act::can_add;
             }
 
             return action::act::invalid;
