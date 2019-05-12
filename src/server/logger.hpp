@@ -16,9 +16,14 @@ namespace sik::server {
             invalid_packet_log(invalid_file_log, sock);
         }
 
+        void cannot_recognise(const sik::common::single_packet& packet) {
+            invalid_packet_log(invalid_command_log, packet.client);
+        }
+
 
     private:
         static constexpr const char* invalid_file_log = "File does not exist.";
+        static constexpr const char* invalid_command_log = "Cannot recognise the given command.";
     };
 }
 

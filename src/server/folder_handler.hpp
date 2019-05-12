@@ -11,6 +11,7 @@
 #include <iostream>
 #include "../common/const.h"
 #include <boost/filesystem.hpp>
+#include <mutex>
 
 namespace sik::server {
     namespace {
@@ -53,6 +54,7 @@ namespace sik::server {
         }
 
         std::vector<std::string> filter_and_get_files(const std::string& filter) {
+            std::scoped_lock lock(mtx);
             std::vector<std::string> aux;
 
             std::for_each(
@@ -69,10 +71,14 @@ namespace sik::server {
         }
 
         uint64_t get_free_space() {
+            std::scoped_lock lock(mtx);
+
             return max_space - folder_size;
         }
 
         bool contains(const std::string& file) {
+            std::scoped_lock lock(mtx);
+
             return files.find(file) != files.end();
         }
 
@@ -82,6 +88,8 @@ namespace sik::server {
         }
 
         void remove(const std::string& filename) {
+            std::scoped_lock lock(mtx);
+
             if (!contains(filename))
                 throw std::runtime_error("File does not exist");
 
@@ -104,6 +112,7 @@ namespace sik::server {
         std::unordered_map<std::string, uint64_t> file_size;
         uint64_t folder_size;
         uint64_t max_space;
+        std::mutex mtx;
     };
 
     std::ostream& operator<<(std::ostream& os, folder& fldr) {

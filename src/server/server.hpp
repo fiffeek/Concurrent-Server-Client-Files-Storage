@@ -115,7 +115,7 @@ namespace sik::server {
                         break;
                     default:
                     case action::act::invalid:
-                        std::cout << "invalid" << std::endl;
+                        logger.cannot_recognise(packet);
                         break;
                 }
             }
