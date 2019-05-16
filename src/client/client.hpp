@@ -48,8 +48,10 @@ namespace sik::client {
             }
         }
 
-        void discover() {
+        void discover(client_socket& socket) {
             sik::common::single_packet packet{};
+            socket.connect();
+
             auto cmd = sik::common::make_command(
                     sik::common::HELLO,
                     cmd_seq.get(),
@@ -169,40 +171,39 @@ namespace sik::client {
             }
         }
 
-        void upload(const std::string& additional_data) {
-            sik::common::file scheduled_file{fs::path{additional_data}};
+        void upload_helper(sik::common::file scheduled_file, std::string additional_data) {
+            client_socket sock{data};
+            sock.connect();
 
-            if (!scheduled_file.check_open()) {
-                logger.file_does_not_exist(additional_data);
-                return;
-            }
+            discover(sock);
 
-            discover();
             servers.sort();
+            servers_list servers_cpy = servers;
+            std::cout << "?" << std::endl;
 
-            auto iter = servers.iterator();
+            auto iter = servers_cpy.iterator();
             auto filename = scheduled_file.get_filename();
             bool found_server = false;
-            if (servers.empty() || !servers.can_hold(iter, scheduled_file.get_file_size())) {
+            if (servers_cpy.empty() || !servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
                 logger.file_too_big(additional_data);
                 return;
             }
 
-            while (servers.can_hold(iter, scheduled_file.get_file_size())) {
+            while (servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
                 sik::common::single_packet packet{};
                 auto cmd = sik::common::make_command(
                         sik::common::ADD,
                         cmd_seq.get(),
                         scheduled_file.get_file_size(),
                         sik::common::to_vector(filename)
-                        );
+                );
 
-                socket.sendto(cmd, filename.length(), servers.get_server(iter));
-                socket.receive(packet);
+                sock.sendto(cmd, filename.length(), servers_cpy.get_server(iter));
+                sock.receive(packet);
 
                 if (is_packet_valid(packet, sik::client::action::act::no_way, cm::pack_type::simpl, false)) {
-                    if (servers.has_next(iter))
-                        servers.next(iter);
+                    if (servers_cpy.has_next(iter))
+                        servers_cpy.next(iter);
                     else
                         break;
                 } else if (is_packet_valid(packet, sik::client::action::act::can_add, cm::pack_type::cmplx, false)) {
@@ -227,6 +228,23 @@ namespace sik::client {
                 logger.file_too_big(additional_data);
         }
 
+        void upload(const std::string& additional_data) {
+            sik::common::file scheduled_file{fs::path{additional_data}};
+
+            if (!scheduled_file.check_open()) {
+                logger.file_does_not_exist(additional_data);
+                return;
+            }
+
+            std::thread helper(
+                    &client::upload_helper,
+                    this,
+                    scheduled_file,
+                    additional_data
+                    );
+            helper.detach();
+        }
+
         void run() {
             std::cout << "client is on" << std::endl;
             socket.connect();
@@ -246,7 +264,7 @@ namespace sik::client {
                         fetch(additional_data);
                         break;
                     case sik::client::input::act::discover:
-                        discover();
+                        discover(socket);
                         break;
                     case sik::client::input::act::search:
                         search(additional_data);
