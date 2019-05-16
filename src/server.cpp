@@ -12,10 +12,10 @@ namespace po = boost::program_options;
 int main(int argc, char *argv[]) {
     po::options_description desc("Allowed options");
     desc.add_options()
-            (",g", po::value<std::string>(), "MCAST_ADDR")
-            (",p", po::value<uint16_t>(), "CMD_PORT")
+            (",g", po::value<std::string>()->required(), "MCAST_ADDR")
+            (",p", po::value<uint16_t>()->required(), "CMD_PORT")
             (",b", po::value<uint64_t>()->default_value(sik::common::MAX_SPACE), "MAX_SPACE")
-            (",f", po::value<std::string>(), "SHRD_FLDR")
+            (",f", po::value<std::string>()->required(), "SHRD_FLDR")
             (",t", po::value<int>()->default_value(sik::common::DFLT_WAIT), "TIMEOUT")
             ("help", "HELP");
 
