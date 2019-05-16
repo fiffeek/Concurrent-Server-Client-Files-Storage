@@ -36,6 +36,11 @@ namespace sik::server {
             if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &address_reuse, sizeof address_reuse) < 0)
                 throw std::runtime_error("Could not set socket options");
 
+            timeval send_timeout{};
+            send_timeout.tv_sec = 1;
+            if (setsockopt (sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&send_timeout, sizeof(send_timeout)) < 0)
+                throw std::runtime_error("Could not set socket options");
+
             local_address.sin_family = AF_INET;
             local_address.sin_addr.s_addr = htonl(INADDR_ANY);
             local_address.sin_port = htons(cmd_port);

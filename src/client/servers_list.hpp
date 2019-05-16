@@ -7,11 +7,6 @@
 #include "../common/message.hpp"
 
 namespace sik::client {
-    struct server {
-        sockaddr_in addr;
-        uint64_t space;
-    };
-
     class servers_list {
         using iter_type = size_t;
     public:
@@ -76,6 +71,11 @@ namespace sik::client {
         }
 
     private:
+        struct server {
+            sockaddr_in addr;
+            uint64_t space;
+        };
+
         std::vector<server> servers;
         std::mutex mtx;
     };

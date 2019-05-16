@@ -6,14 +6,14 @@
 namespace sik::client {
     class sequence {
     public:
-        sequence() : seq(2115) {}
+        sequence()
+                : seq(sik::common::SEQ_START) {}
 
         void increment() {
             seq++;
 
-            if (seq > INT64_MAX - 5) {
+            if (seq > INT64_MAX - 5)
                 seq = 0;
-            }
         }
 
         uint64_t get() {

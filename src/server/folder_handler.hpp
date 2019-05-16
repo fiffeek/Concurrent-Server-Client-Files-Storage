@@ -108,8 +108,14 @@ namespace sik::server {
         void add_file(const std::string& filename, uint64_t filesize) {
             std::scoped_lock lock(mtx);
 
-            files.insert(filename);
-            file_size[filename] = filesize;
+            auto inserter = files.insert(filename);
+
+            try {
+                file_size[filename] = filesize;
+            } catch (...) {
+                files.erase(inserter.first);
+                throw;
+            }
         }
 
         void remove(const std::string& filename) {

@@ -27,19 +27,27 @@ namespace sik::server {
                 , socket(data) {}
 
         void hello(sik::common::single_packet& packet) {
-            auto cmd = sik::common::make_command(
-                    sik::common::GOOD_DAY,
-                    packet.get_cmd_seq(),
-                    fldr.get_free_space(),
-                    sik::common::to_vector(data.mcast_addr)
-            );
+            try {
+                auto cmd = sik::common::make_command(
+                        sik::common::GOOD_DAY,
+                        packet.get_cmd_seq(),
+                        fldr.get_free_space(),
+                        sik::common::to_vector(data.mcast_addr)
+                );
 
-            socket.sendto(cmd, data.mcast_addr.length(), packet.client);
+                socket.sendto(cmd, data.mcast_addr.length(), packet.client);
+            } catch (std::exception& e) {
+                logger.cant_respond(__func__, packet.client, e.what());
+            }
         }
 
         void list(sik::common::single_packet& packet) {
-            std::vector<std::string> query = fldr.filter_and_get_files(packet.data_to_string());
-            socket.send_files_to(query, packet);
+            try {
+                std::vector<std::string> query = fldr.filter_and_get_files(packet.data_to_string());
+                socket.send_files_to(query, packet);
+            } catch (std::exception& e) {
+                logger.cant_respond(__func__, packet.client, e.what());
+            }
         }
 
         void send_file(sik::common::single_packet packet) {
@@ -53,15 +61,24 @@ namespace sik::server {
                     sik::common::to_vector(filename)
                     );
 
-            socket.sendto(cmd, filename.length(), packet.client);
-            int msg_sock = setup_clients_sock(sock);
+            try {
+                socket.sendto(cmd, filename.length(), packet.client);
+            } catch (std::exception& e) {
+                logger.cant_respond(__func__, packet.client, e.what());
+            }
 
+            int msg_sock = setup_clients_sock(sock);
             if (msg_sock < 0)
                 return;
 
             tcp_socket client{msg_sock};
             sik::common::file scheduled_file{fldr.file_path(filename)};
-            scheduled_file.sendto(client);
+
+            try {
+                scheduled_file.sendto(client);
+            } catch (std::exception& e) {
+                logger.cant_respond(__func__, packet.client, e.what());
+            }
         }
 
         void get(sik::common::single_packet& packet) {
@@ -125,7 +142,12 @@ namespace sik::server {
                         sik::common::to_vector(filename)
                 );
 
-                socket.sendto(cmd, filename.length(), packet.client);
+                try {
+                    socket.sendto(cmd, filename.length(), packet.client);
+                } catch (std::exception& e) {
+                    logger.cant_respond(__func__, packet.client, e.what());
+                }
+
                 return;
             }
 
@@ -139,7 +161,14 @@ namespace sik::server {
             std::cout << fldr << std::endl;
 
             for (;;) {
-                sik::common::single_packet packet = socket.receive();
+                sik::common::single_packet packet;
+
+                try {
+                    packet = socket.receive();
+                } catch (std::exception& e) {
+                    logger.cant_read_cmd(e.what());
+                    continue;
+                }
 
                 switch(packet_handler.handle_packet(packet)) {
                     case action::act::add:
@@ -175,7 +204,10 @@ namespace sik::server {
             int msg_sock = -1;
 
             while (get_diff(start) < data.timeout && msg_sock == -1) {
-                msg_sock = accept(sock.get_sock(), (sockaddr *) &client_address, &client_address_len);
+                msg_sock = accept(
+                        sock.get_sock(),
+                        (sockaddr *) &client_address,
+                        &client_address_len);
             }
 
             return msg_sock;

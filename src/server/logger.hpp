@@ -24,6 +24,19 @@ namespace sik::server {
             std::cerr << "Cannot remove the file " << file << std::endl;
         }
 
+        void cant_respond(std::string func, const sockaddr_in& client, const char* what) {
+            std::cerr << "Error in function "
+                      << func << " : "
+                      << what << " while handling "
+                      << sik::common::get_addr(client)
+                      << ":" << sik::common::get_port(client)
+                      << std::endl;
+        }
+
+        void cant_read_cmd(const char* what) {
+            std::cerr << "Cant read command, possibly empty or invalid: " << what << std::endl;
+        }
+
     private:
         static constexpr const char* invalid_file_log = "File does not exist.";
         static constexpr const char* invalid_command_log = "Cannot recognise the given command.";

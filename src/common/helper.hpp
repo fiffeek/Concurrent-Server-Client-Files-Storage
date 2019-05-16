@@ -29,7 +29,9 @@ namespace sik::common {
 
     void invalid_packet_log(const char* mess, const sockaddr_in& node) {
         std::cerr << "[PCKG ERROR] Skipping invalid package from "
-                  << sik::common::get_addr(node) << ":" << sik::common::get_port(node) << "." << mess << std::endl;
+                  << sik::common::get_addr(node)
+                  << ":" << sik::common::get_port(node)
+                  << "." << mess << std::endl;
     }
 
     void fill_timeout(timeval& read_timeout,
@@ -37,6 +39,7 @@ namespace sik::common {
             int timeout) {
         auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - start);
         uint64_t rest = timeout * sik::common::NSEC - usec.count();
+
         read_timeout.tv_sec = rest / sik::common::NSEC;
         read_timeout.tv_usec = (rest % sik::common::NSEC) / sik::common::TO_MICRO;
     }

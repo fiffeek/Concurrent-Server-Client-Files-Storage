@@ -19,7 +19,11 @@ namespace sik::common {
         std::string folder;
         int timeout;
 
-        common_message(const std::string &mcast_addr, uint16_t cmd_port, const std::string &folder, int timeout)
+        common_message(
+                const std::string &mcast_addr,
+                uint16_t cmd_port,
+                const std::string &folder,
+                int timeout)
                 : mcast_addr(mcast_addr)
                 , cmd_port(cmd_port)
                 , folder(folder)
@@ -30,11 +34,14 @@ namespace sik::common {
             : public common_message {
         uint64_t max_space;
 
-        server_message(const std::string &mcast_addr, uint16_t cmd_port, const std::string &folder, int timeout,
-                       uint64_t max_space)
-                       : common_message(mcast_addr, cmd_port, folder, timeout)
-                       , max_space(max_space)
-                       {}
+        server_message(
+                const std::string &mcast_addr,
+                uint16_t cmd_port,
+                const std::string &folder,
+                int timeout,
+                uint64_t max_space)
+                : common_message(mcast_addr, cmd_port, folder, timeout)
+                , max_space(max_space) {}
     };
 
     using client_message = common_message;
@@ -66,7 +73,10 @@ namespace sik::common {
         return aux;
     }
 
-    simpl_cmd make_command(const char* title, uint64_t cmd_seq, const std::vector<sik::common::byte>& data) {
+    simpl_cmd make_command(
+            const char* title,
+            uint64_t cmd_seq,
+            const std::vector<sik::common::byte>& data) {
         simpl_cmd simple{};
 
         memset(&simple, 0, sizeof simple);
@@ -77,8 +87,11 @@ namespace sik::common {
         return simple;
     }
 
-    cmplx_cmd make_command(const char* title, uint64_t cmd_seq,
-            uint64_t param, const std::vector<sik::common::byte>& data) {
+    cmplx_cmd make_command(
+            const char* title,
+            uint64_t cmd_seq,
+            uint64_t param,
+            const std::vector<sik::common::byte>& data) {
         cmplx_cmd cmplx{};
 
         memset(&cmplx, 0, sizeof cmplx);
@@ -97,14 +110,13 @@ namespace sik::common {
         std::optional<cmplx_cmd> cmplx;
         std::optional<simpl_cmd> simpl;
 
-        explicit single_packet(const sockaddr_in &client) : client(client) {
-            cmplx.reset();
-            simpl.reset();
+        explicit single_packet(const sockaddr_in &client)
+            : client(client) {
+            reset();
         }
 
         single_packet() {
-            cmplx.reset();
-            simpl.reset();
+            reset();
         }
 
         uint64_t get_cmd_seq() {
@@ -121,7 +133,7 @@ namespace sik::common {
             } else if (simpl.has_value()) {
                 return std::string{simpl->data, simpl->data + get_data_size()};
             } else {
-                throw std::logic_error("Cannot return data size of undefined");
+                throw std::logic_error("Cannot return data of undefined");
             }
         }
 
@@ -133,6 +145,11 @@ namespace sik::common {
             } else {
                 throw std::logic_error("Cannot return data size of undefined");
             }
+        }
+    private:
+        void reset() {
+            cmplx.reset();
+            simpl.reset();
         }
     };
 }

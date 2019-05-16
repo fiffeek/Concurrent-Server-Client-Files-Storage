@@ -35,7 +35,9 @@ namespace sik::client {
 
         void files_log(const sik::common::single_packet& packet, const std::vector<std::string>& files) {
             for (const auto& file : files) {
-                std::cout << file << " (" << sik::common::get_addr(packet.client) << ")" << std::endl;
+                std::cout << file << " ("
+                          << sik::common::get_addr(packet.client)
+                          << ")" << std::endl;
             }
         }
 

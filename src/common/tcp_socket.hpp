@@ -24,14 +24,13 @@ namespace sik::common {
             if (getsockname(
                     sock,
                     (sockaddr *) &sin,
-                    (socklen_t *) &addrlen
-            ) == sik::common::OK)
+                    (socklen_t *) &addrlen) == sik::common::OK)
                 return ntohs(sin.sin_port);
             else
                 throw std::runtime_error("Could not get socket's port");
         }
 
-        void spawn_socket(const std::string& addr, uint16_t port) {
+        void spawn_socket(const std::string &addr, uint16_t port) {
             addrinfo addr_hints{};
             addr_hints.ai_family = AF_INET;
             addr_hints.ai_socktype = SOCK_STREAM;
@@ -54,7 +53,7 @@ namespace sik::common {
             freeaddrinfo(addr_result);
         }
 
-        void spawn_socket(const sockaddr_in& addr, uint16_t port) {
+        void spawn_socket(const sockaddr_in &addr, uint16_t port) {
             spawn_socket(sik::common::get_addr(addr), port);
         }
 
@@ -76,7 +75,6 @@ namespace sik::common {
                 if (len <= 0)
                     return false;
                 else if (len > 0) {
-                    std::cout << "Successfully sent " << len << " bytes" << std::endl;
                     prev_len += len;
 
                     if ((size_t) prev_len == struct_size)
@@ -106,7 +104,6 @@ namespace sik::common {
                 if (len < 0)
                     return sik::common::C_ERR;
                 else if (len > 0) {
-                    std::cout << "Successfully read " << len << " bytes" << std::endl;
                     prev_len += len;
 
                     if ((size_t) prev_len == struct_size)
@@ -117,7 +114,6 @@ namespace sik::common {
 
             } while (remains > 0);
 
-            std::cout << "Successfully read all bytes" << std::endl;
             return prev_len;
         }
 

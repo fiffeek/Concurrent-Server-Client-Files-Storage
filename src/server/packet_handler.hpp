@@ -29,19 +29,19 @@ namespace sik::server {
             std::cout << "Got message titled: " << message << std::endl;
 
             if (str_message.compare(cm::HELLO) == cm::OK) {
-                pack_simpl(packet); // TODO use pack instead of pack_simpl with enum
+                pack(packet, sik::common::pack_type::simpl);
                 return action::act::hello;
             } else if (str_message.compare(cm::LIST) == cm::OK) {
-                pack_simpl(packet);
+                pack(packet, sik::common::pack_type::simpl);
                 return action::act::list;
             } else if (str_message.compare(cm::GET) == cm::OK) {
-                pack_simpl(packet);
+                pack(packet, sik::common::pack_type::simpl);
                 return action::act::get;
             } else if (str_message.compare(cm::DEL) == cm::OK) {
-                pack_simpl(packet);
+                pack(packet, sik::common::pack_type::simpl);
                 return action::act::del;
             } else if (str_message.compare(cm::ADD) == cm::OK) {
-                pack_cmplx(packet);
+                pack(packet, sik::common::pack_type::cmplx);
                 return action::act::add;
             }
 

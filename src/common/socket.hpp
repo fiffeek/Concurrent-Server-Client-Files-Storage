@@ -60,10 +60,14 @@ namespace sik::common {
 
         void sendto(const std::vector<sik::common::byte>& mess, const sockaddr_in& remote_address) {
             size_t length = mess.size();
-            std::cout << "sending " + std::to_string(length) << std::endl;
 
-            if (::sendto(sock, mess.data(), length, 0,
-                         reinterpret_cast<const sockaddr *>(&remote_address), sizeof remote_address) < 0)
+            if (::sendto(
+                    sock,
+                    mess.data(),
+                    length,
+                    0,
+                    reinterpret_cast<const sockaddr *>(&remote_address),
+                    sizeof remote_address) < 0)
                 throw std::runtime_error("Cannot send the data");
         }
 

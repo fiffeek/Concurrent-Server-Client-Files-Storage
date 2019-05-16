@@ -50,7 +50,7 @@ namespace sik::client {
 
         void discover(client_socket& socket) {
             sik::common::single_packet packet{};
-            socket.connect();
+            timeval read_timeout{};
 
             auto cmd = sik::common::make_command(
                     sik::common::HELLO,
@@ -61,7 +61,6 @@ namespace sik::client {
             socket.sendto(cmd, 0);
             servers.clear();
             auto start = std::chrono::system_clock::now();
-            timeval read_timeout{};
 
             while (get_diff(start) < data.timeout) {
                 fill_timeout(read_timeout, start, data.timeout);
@@ -90,6 +89,8 @@ namespace sik::client {
 
         void search(const std::string& additional_data) {
             sik::common::single_packet packet{};
+            timeval read_timeout{};
+
             auto cmd = sik::common::make_command(
                     sik::common::LIST,
                     cmd_seq.get(),
@@ -99,7 +100,6 @@ namespace sik::client {
             socket.sendto(cmd, additional_data.length());
             results_container.clear();
             auto start = std::chrono::system_clock::now();
-            timeval read_timeout{};
 
             while (get_diff(start) < data.timeout) {
                 fill_timeout(read_timeout, start, data.timeout);
@@ -179,7 +179,6 @@ namespace sik::client {
 
             servers.sort();
             servers_list servers_cpy = servers;
-            std::cout << "?" << std::endl;
 
             auto iter = servers_cpy.iterator();
             auto filename = scheduled_file.get_filename();
