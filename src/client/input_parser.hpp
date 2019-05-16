@@ -17,6 +17,7 @@ namespace sik::client {
         parser()
         : discover("discover", std::regex_constants::icase)
         , empty_search("search", std::regex_constants::icase)
+        , empty_search2("search ", std::regex_constants::icase)
         , search("search ([\\w\\s.]+)", std::regex_constants::icase)
         , fetch("fetch ([\\w\\s.]+)", std::regex_constants::icase)
         , upload("upload ([\\w\\s.]+)", std::regex_constants::icase)
@@ -46,6 +47,8 @@ namespace sik::client {
                 return input::act::discover;
             } else if (std::regex_match(line_cast, match, empty_search)) {
                 return input::act::search;
+            } else if (std::regex_match(line_cast, match, empty_search2)) {
+                return input::act::search;
             } else if (std::regex_match(line_cast, match, search)) {
                 return input::act::search;
             } else if (std::regex_match(line_cast, match, fetch)) {
@@ -64,6 +67,7 @@ namespace sik::client {
     private:
         std::regex discover;
         std::regex empty_search;
+        std::regex empty_search2;
         std::regex search;
         std::regex fetch;
         std::regex upload;
