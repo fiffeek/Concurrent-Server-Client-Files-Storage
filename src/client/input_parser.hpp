@@ -15,14 +15,15 @@ namespace sik::client {
     class parser {
     public:
         parser()
-        : discover("discover", std::regex_constants::icase)
-        , empty_search("search", std::regex_constants::icase)
-        , empty_search2("search ", std::regex_constants::icase)
-        , search("search ([\\w\\s.]+)", std::regex_constants::icase)
-        , fetch("fetch ([\\w\\s.]+)", std::regex_constants::icase)
-        , upload("upload ([\\w\\s.]+)", std::regex_constants::icase)
-        , remove("remove ([\\w\\s.]+)", std::regex_constants::icase)
-        , exit("exit", std::regex_constants::icase) {}
+        : discover      ("discover"             ,std::regex_constants::icase)
+        , empty_search  ("search"               ,std::regex_constants::icase)
+        , empty_search2 ("search "              ,std::regex_constants::icase)
+        , search        ("search ([\\w\\s.]+)"  ,std::regex_constants::icase)
+        , fetch         ("fetch ([\\w\\s.]+)"   ,std::regex_constants::icase)
+        , upload        ("upload ([\\w\\s.]+)"  ,std::regex_constants::icase)
+        , remove        ("remove ([\\w\\s.]+)"  ,std::regex_constants::icase)
+        , exit          ("exit"                 ,std::regex_constants::icase)
+        { }
 
         input::act parse_line(std::string& additional_data) {
             std::string line;

@@ -28,7 +28,7 @@ namespace sik::client {
     class client {
     public:
         explicit client(const message& data) : data(data), socket(data) {
-            if (!fs::is_directory(data.folder)) // TODO maybe we should create dir here?
+            if (!fs::is_directory(data.folder))
                 throw std::runtime_error("Given directory is not a proper directory");
 
             fldr = fs::path{data.folder};
