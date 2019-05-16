@@ -20,6 +20,9 @@ namespace sik::server {
             invalid_packet_log(invalid_command_log, packet.client);
         }
 
+        void cannot_remove(std::string& file) {
+            std::cerr << "Cannot remove the file " << file << std::endl;
+        }
 
     private:
         static constexpr const char* invalid_file_log = "File does not exist.";

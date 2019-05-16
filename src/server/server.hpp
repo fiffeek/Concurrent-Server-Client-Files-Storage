@@ -79,7 +79,11 @@ namespace sik::server {
             if (!fldr.contains(filename))
                 return;
 
-            fldr.remove(filename); // TODO ask, this throws?
+            try {
+                fldr.remove(filename);
+            } catch (std::exception& e) {
+                logger.cannot_remove(filename);
+            }
         }
 
         void receive_file(sik::common::single_packet packet, uint64_t reserved_space) {
@@ -170,7 +174,6 @@ namespace sik::server {
             auto start = std::chrono::system_clock::now();
             int msg_sock = -1;
 
-            // TODO ask, what if someone else connects? (packet.client != client_address)
             while (get_diff(start) < data.timeout && msg_sock == -1) {
                 msg_sock = accept(sock.get_sock(), (sockaddr *) &client_address, &client_address_len);
             }

@@ -99,11 +99,15 @@ namespace sik::server {
         }
 
         fs::path file_path(const std::string& file) {
+            std::scoped_lock lock(mtx);
+
             fs::path single_path{folder_name};
             return single_path.append(file);
         }
 
         void add_file(const std::string& filename, uint64_t filesize) {
+            std::scoped_lock lock(mtx);
+
             files.insert(filename);
             file_size[filename] = filesize;
         }
