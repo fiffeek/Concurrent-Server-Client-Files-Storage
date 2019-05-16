@@ -28,7 +28,7 @@ namespace sik::server {
             ip_mreq.imr_interface.s_addr = htonl(INADDR_ANY);
             if (inet_aton(mcast_addr.c_str(), &ip_mreq.imr_multiaddr) == 0)
                 throw std::runtime_error("Could not connect to specified address");
-
+            
             if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (void *) &ip_mreq, sizeof ip_mreq) < 0)
                 throw std::runtime_error("Could not set socket options");
 

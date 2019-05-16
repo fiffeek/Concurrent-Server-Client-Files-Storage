@@ -31,14 +31,14 @@ namespace sik::common {
 
         void pack_simpl(cm::single_packet& packet) {
             packet.simpl = std::make_optional(pack<cm::simpl_cmd>(packet));
-            packet.simpl->cmd_seq = htobe64(packet.simpl->cmd_seq);
+            packet.simpl->cmd_seq = be64toh(packet.simpl->cmd_seq);
             packet.cmplx.reset();
         }
 
         void pack_cmplx(cm::single_packet& packet) {
             packet.cmplx = std::make_optional(pack<cm::cmplx_cmd>(packet));
-            packet.cmplx->cmd_seq = htobe64(packet.cmplx->cmd_seq);
-            packet.cmplx->param = htobe64(packet.cmplx->param);
+            packet.cmplx->cmd_seq = be64toh(packet.cmplx->cmd_seq);
+            packet.cmplx->param = be64toh(packet.cmplx->param);
             packet.simpl.reset();
         }
 
