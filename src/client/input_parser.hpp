@@ -18,10 +18,10 @@ namespace sik::client {
         : discover      ("discover"             ,std::regex_constants::icase)
         , empty_search  ("search"               ,std::regex_constants::icase)
         , empty_search2 ("search "              ,std::regex_constants::icase)
-        , search        ("search (.+)"  ,std::regex_constants::icase)
-        , fetch         ("fetch (.+)"   ,std::regex_constants::icase)
-        , upload        ("upload (.+)"  ,std::regex_constants::icase)
-        , remove        ("remove (.+)"  ,std::regex_constants::icase)
+        , search        ("search (.+)"          ,std::regex_constants::icase)
+        , fetch         ("fetch (.+)"           ,std::regex_constants::icase)
+        , upload        ("upload (.+)"          ,std::regex_constants::icase)
+        , remove        ("remove (.+)"          ,std::regex_constants::icase)
         , exit          ("exit"                 ,std::regex_constants::icase)
         { }
 
