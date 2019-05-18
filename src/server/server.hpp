@@ -10,10 +10,10 @@
 #include "packet_handler.hpp"
 #include "logger.hpp"
 #include "tcp_socket_factory.hpp"
+#include "signal_catcher.hpp"
 #include "../common/message.hpp"
 #include "../common/tcp_socket.hpp"
 #include "../common/file.hpp"
-#include "signal_catcher.hpp"
 
 namespace sik::server {
     using message = sik::common::server_message;
