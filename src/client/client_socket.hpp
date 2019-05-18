@@ -2,10 +2,10 @@
 #define SIK_ZAD2_CLIENT_SOCKET_HPP
 
 #include <string>
+#include <vector>
 #include "../common/const.h"
 #include "../common/message.hpp"
 #include "../common/socket.hpp"
-#include <vector>
 
 namespace sik::client {
     class client_socket

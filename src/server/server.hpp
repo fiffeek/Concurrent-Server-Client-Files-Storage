@@ -5,12 +5,12 @@
 #include <cstdint>
 #include <dirent.h>
 #include <thread>
-#include "../common/message.hpp"
 #include "folder_handler.hpp"
 #include "server_socket.hpp"
 #include "packet_handler.hpp"
 #include "logger.hpp"
 #include "tcp_socket_factory.hpp"
+#include "../common/message.hpp"
 #include "../common/tcp_socket.hpp"
 #include "../common/file.hpp"
 
@@ -66,6 +66,7 @@ namespace sik::server {
                 socket.sendto(cmd, filename.length(), packet.client);
             } catch (std::exception& e) {
                 logger.cant_respond(__func__, packet.client, e.what());
+                return;
             }
 
             int msg_sock = setup_clients_sock(sock);

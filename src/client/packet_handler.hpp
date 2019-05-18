@@ -28,8 +28,6 @@ namespace sik::client {
         action::act handle_packet(cm::single_packet& packet) {
             auto str_message = packet.get_title();
 
-            std::cout << str_message << std::endl;
-
             for (const auto& item : str_to_act) {
                 if (str_message.compare(item.first) == cm::OK) {
                     pack(packet, str_to_packet[item.first]);
