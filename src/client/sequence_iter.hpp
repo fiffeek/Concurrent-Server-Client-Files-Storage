@@ -2,6 +2,7 @@
 #define SIK_ZAD2_SEQUENCE_ITER_HPP
 
 #include <cstdint>
+#include <mutex>
 
 namespace sik::client {
     class sequence {
@@ -10,6 +11,7 @@ namespace sik::client {
                 : seq(sik::common::SEQ_START) {}
 
         void increment() {
+            std::scoped_lock lock(mtx);
             seq++;
 
             if (seq > INT64_MAX - 5)
@@ -17,11 +19,13 @@ namespace sik::client {
         }
 
         uint64_t get() {
+            std::scoped_lock lock(mtx);
             return seq;
         }
 
     private:
         uint64_t seq;
+        std::mutex mtx;
     };
 }
 

@@ -38,10 +38,11 @@ namespace sik::client {
         void discover(client_socket& socket, bool should_log = true) {
             sik::common::single_packet packet{};
             timeval read_timeout{};
+            auto cmd_seq_ctr = cmd_seq.get();
 
             auto cmd = sik::common::make_command(
                     sik::common::HELLO,
-                    cmd_seq.get(),
+                    cmd_seq_ctr,
                     std::vector<sik::common::byte>{}
                     );
 
@@ -56,7 +57,7 @@ namespace sik::client {
                 if (socket.receive(packet) > 0
                     && packet_handler.is_packet_valid(
                             logger,
-                            cmd_seq,
+                            cmd_seq_ctr,
                             packet,
                             sik::client::action::act::good_day,
                             cm::pack_type::cmplx)) {
@@ -82,10 +83,11 @@ namespace sik::client {
         void search(const std::string& additional_data) {
             sik::common::single_packet packet{};
             timeval read_timeout{};
+            auto cmd_seq_ctr = cmd_seq.get();
 
             auto cmd = sik::common::make_command(
                     sik::common::LIST,
-                    cmd_seq.get(),
+                    cmd_seq_ctr,
                     sik::common::to_vector(additional_data)
                     );
 
@@ -100,7 +102,7 @@ namespace sik::client {
                 if (socket.receive(packet) > 0
                     && packet_handler.is_packet_valid(
                             logger,
-                            cmd_seq,
+                            cmd_seq_ctr,
                             packet,
                             sik::client::action::act::my_list,
                             cm::pack_type::simpl)) {
@@ -129,9 +131,11 @@ namespace sik::client {
             }
 
             sik::common::single_packet packet{};
+            auto cmd_seq_ctr = cmd_seq.get();
+
             auto cmd = sik::common::make_command(
                     sik::common::GET,
-                    cmd_seq.get(),
+                    cmd_seq_ctr,
                     sik::common::to_vector(additional_data)
             );
 
@@ -144,7 +148,7 @@ namespace sik::client {
 
             if (packet_handler.is_packet_valid(
                     logger,
-                    cmd_seq,
+                    cmd_seq_ctr,
                     packet,
                     sik::client::action::act::connect_me,
                     cm::pack_type::cmplx)) {
@@ -193,9 +197,11 @@ namespace sik::client {
 
             while (servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
                 sik::common::single_packet packet{};
+                auto cmd_seq_ctr = cmd_seq.get();
+
                 auto cmd = sik::common::make_command(
                         sik::common::ADD,
-                        cmd_seq.get(),
+                        cmd_seq_ctr,
                         scheduled_file.get_file_size(),
                         sik::common::to_vector(filename)
                 );
@@ -205,7 +211,7 @@ namespace sik::client {
 
                 if (packet_handler.is_packet_valid(
                         logger,
-                        cmd_seq,
+                        cmd_seq_ctr,
                         packet,
                         sik::client::action::act::no_way,
                         cm::pack_type::simpl,
@@ -216,7 +222,7 @@ namespace sik::client {
                         break;
                 } else if (packet_handler.is_packet_valid(
                         logger,
-                        cmd_seq,
+                        cmd_seq_ctr,
                         packet,
                         sik::client::action::act::can_add,
                         cm::pack_type::cmplx,
@@ -236,7 +242,7 @@ namespace sik::client {
                 } else {
                     packet_handler.is_packet_valid(
                             logger,
-                            cmd_seq,
+                            cmd_seq_ctr,
                             packet,
                             sik::client::action::act::can_add,
                             cm::pack_type::cmplx,

@@ -40,7 +40,7 @@ namespace sik::client {
 
         bool is_packet_valid(
                 message_logger& logger,
-                sequence& cmd_seq,
+                uint64_t cmd_seq,
                 cm::single_packet& packet,
                 action::act action_type,
                 sik::common::pack_type packet_type,
@@ -57,7 +57,7 @@ namespace sik::client {
     private:
         bool is_cmplx_valid(
                 message_logger& logger,
-                sequence& cmd_seq,
+                uint64_t cmd_seq,
                 cm::single_packet& packet,
                 action::act action_type,
                 bool log) {
@@ -67,7 +67,7 @@ namespace sik::client {
             } else if (!packet.cmplx.has_value()) {
                 if (log) logger.packet_corrupted(packet.client);
                 return false;
-            } else if (packet.cmplx->cmd_seq != cmd_seq.get()) {
+            } else if (packet.cmplx->cmd_seq != cmd_seq) {
                 if (log) logger.sequence_corrupted(packet.client);
                 return false;
             } else if (packet.get_data_size() < 0) {
@@ -80,7 +80,7 @@ namespace sik::client {
 
         bool is_simpl_valid(
                 message_logger& logger,
-                sequence& cmd_seq,
+                uint64_t cmd_seq,
                 cm::single_packet& packet,
                 action::act action_type,
                 bool log) {
@@ -90,7 +90,7 @@ namespace sik::client {
             } else if (!packet.simpl.has_value()) {
                 if (log) logger.packet_corrupted(packet.client);
                 return false;
-            } else if (packet.simpl->cmd_seq != cmd_seq.get()) {
+            } else if (packet.simpl->cmd_seq != cmd_seq) {
                 if (log) logger.sequence_corrupted(packet.client);
                 return false;
             } else if (packet.get_data_size() < 0) {
