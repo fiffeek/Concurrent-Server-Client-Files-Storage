@@ -1,5 +1,5 @@
-#ifndef SIK_ZAD2_CONST_H
-#define SIK_ZAD2_CONST_H
+#ifndef SIK_ZAD2_CONST_HPP
+#define SIK_ZAD2_CONST_HPP
 
 #include <cstdint>
 
@@ -36,4 +36,4 @@ namespace sik::common {
     constexpr int SEQ_START                 = 2115;
 }
 
-#endif //SIK_ZAD2_CONST_H
+#endif //SIK_ZAD2_CONST_HPP

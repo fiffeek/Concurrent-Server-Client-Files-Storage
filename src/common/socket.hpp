@@ -4,7 +4,7 @@
 #include <cstring>
 #include <stdexcept>
 #include "message.hpp"
-#include "const.h"
+#include "const.hpp"
 
 namespace sik::common {
     class socket {

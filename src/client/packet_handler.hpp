@@ -1,14 +1,13 @@
 #ifndef SIK_ZAD2_PACKET_HANDLER_HPP
 #define SIK_ZAD2_PACKET_HANDLER_HPP
 
-#include "../common/message.hpp"
-#include "../common/const.h"
 #include <vector>
 #include <iostream>
 #include <unordered_map>
-#include "../common/const.h"
-#include "../common/packer.hpp"
 #include "logger.hpp"
+#include "../common/packer.hpp"
+#include "../common/message.hpp"
+#include "../common/const.hpp"
 
 namespace sik::client {
     namespace cm = sik::common;

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <optional>
 #include <cstring>
-#include "../common/const.h"
+#include "const.hpp"
 
 namespace sik::common {
     namespace cm = sik::common;

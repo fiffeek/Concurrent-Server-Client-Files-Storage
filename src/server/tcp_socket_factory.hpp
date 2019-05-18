@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <zconf.h>
 #include <stdexcept>
-#include "../common/const.h"
+#include "../common/const.hpp"
 
 namespace sik::server {
     class socket_factory {

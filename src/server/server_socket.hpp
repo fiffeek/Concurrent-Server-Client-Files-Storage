@@ -8,7 +8,7 @@
 #include <zconf.h>
 #include "../common/socket.hpp"
 #include "../common/type.hpp"
-#include "../common/const.h"
+#include "../common/const.hpp"
 #include "../common/message.hpp"
 
 namespace sik::server {

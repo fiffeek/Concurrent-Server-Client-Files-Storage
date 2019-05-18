@@ -4,9 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <optional>
-#include "../common/const.h"
+#include "../common/const.hpp"
 #include "../common/message.hpp"
-#include "../common/const.h"
 #include "../common/packer.hpp"
 
 namespace sik::server {

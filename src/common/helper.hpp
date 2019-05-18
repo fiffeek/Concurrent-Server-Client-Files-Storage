@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <chrono>
+#include "const.hpp"
 
 namespace sik::common {
     template<typename T>
