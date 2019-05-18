@@ -13,6 +13,7 @@
 #include "../common/message.hpp"
 #include "../common/tcp_socket.hpp"
 #include "../common/file.hpp"
+#include "signal_catcher.hpp"
 
 namespace sik::server {
     using message = sik::common::server_message;
@@ -163,13 +164,14 @@ namespace sik::server {
             socket.connect();
             std::cout << fldr << std::endl;
 
-            for (;;) {
+            while (catcher.can_continue()) {
                 sik::common::single_packet packet;
 
                 try {
                     packet = socket.receive();
                 } catch (std::exception& e) {
-                    logger.cant_read_cmd(e.what());
+                    if (catcher.can_continue())
+                        logger.cant_read_cmd(e.what());
                     continue;
                 }
 
@@ -237,6 +239,7 @@ namespace sik::server {
         handler packet_handler;
         message_logger logger;
         socket_factory factory;
+        signal_catcher catcher;
     };
 }
 
