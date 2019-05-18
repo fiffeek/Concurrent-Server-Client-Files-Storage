@@ -95,7 +95,7 @@ namespace sik::server {
         bool contains(const std::string& file) {
             std::scoped_lock lock(mtx);
 
-            return files.find(file) != files.end();
+            return contains_nb(file);
         }
 
         fs::path file_path(const std::string& file) {
@@ -121,7 +121,7 @@ namespace sik::server {
         void remove(const std::string& filename) {
             std::scoped_lock lock(mtx);
 
-            if (!contains(filename))
+            if (!contains_nb(filename))
                 throw std::runtime_error("File does not exist");
 
             fs::path single_path{folder_name};
@@ -138,6 +138,10 @@ namespace sik::server {
         friend std::ostream& operator<<(std::ostream& os, folder& fldr);
 
     private:
+        bool contains_nb(const std::string& file) {
+            return files.find(file) != files.end();
+        }
+
         std::string folder_name;
         std::unordered_set<std::string> files;
         std::unordered_map<std::string, uint64_t> file_size;

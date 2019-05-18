@@ -13,18 +13,22 @@ namespace sik::server {
     class message_logger {
     public:
         void invalid_file(const sockaddr_in& sock) {
+            std::scoped_lock lock(mtx);
             invalid_packet_log(invalid_file_log, sock);
         }
 
         void cannot_recognise(const sik::common::single_packet& packet) {
+            std::scoped_lock lock(mtx);
             invalid_packet_log(invalid_command_log, packet.client);
         }
 
         void cannot_remove(std::string& file) {
+            std::scoped_lock lock(mtx);
             std::cerr << "Cannot remove the file " << file << std::endl;
         }
 
         void cant_respond(std::string func, const sockaddr_in& client, const char* what) {
+            std::scoped_lock lock(mtx);
             std::cerr << "Error in function "
                       << func << " : "
                       << what << " while handling "
@@ -34,12 +38,14 @@ namespace sik::server {
         }
 
         void cant_read_cmd(const char* what) {
+            std::scoped_lock lock(mtx);
             std::cerr << "Cant read command, possibly empty or invalid: " << what << std::endl;
         }
 
     private:
         static constexpr const char* invalid_file_log = "File does not exist.";
         static constexpr const char* invalid_command_log = "Cannot recognise the given command.";
+        std::mutex mtx;
     };
 }
 

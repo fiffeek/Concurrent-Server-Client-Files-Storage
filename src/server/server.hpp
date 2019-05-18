@@ -26,7 +26,8 @@ namespace sik::server {
                 , fldr(data.folder, data.max_space)
                 , socket(data) {}
 
-        void hello(sik::common::single_packet& packet) {
+    private:
+        void hello(sik::common::single_packet packet) {
             try {
                 auto cmd = sik::common::make_command(
                         sik::common::GOOD_DAY,
@@ -41,7 +42,7 @@ namespace sik::server {
             }
         }
 
-        void list(sik::common::single_packet& packet) {
+        void list(sik::common::single_packet packet) {
             try {
                 std::vector<std::string> query = fldr.filter_and_get_files(packet.data_to_string());
                 socket.send_files_to(query, packet);
@@ -81,7 +82,7 @@ namespace sik::server {
             }
         }
 
-        void get(sik::common::single_packet& packet) {
+        void get(sik::common::single_packet packet) {
             if (!fldr.contains(packet.data_to_string())) {
                 logger.invalid_file(packet.client);
                 return;
@@ -91,7 +92,7 @@ namespace sik::server {
             file_sender.detach();
         }
 
-        void del(sik::common::single_packet& packet) {
+        void del(sik::common::single_packet packet) {
             std::string filename = packet.data_to_string();
             if (!fldr.contains(filename))
                 return;
@@ -128,7 +129,7 @@ namespace sik::server {
             }
         }
 
-        void add(sik::common::single_packet& packet) {
+        void add(sik::common::single_packet packet) {
             std::string filename = packet.data_to_string();
             uint64_t size = packet.cmplx->param;
 
@@ -155,6 +156,7 @@ namespace sik::server {
             file_receiver.detach();
         }
 
+    public:
         void run() {
             fldr.index_files();
             socket.connect();
@@ -172,19 +174,34 @@ namespace sik::server {
 
                 switch(packet_handler.handle_packet(packet)) {
                     case action::act::add:
-                        add(packet);
+                        {
+                            std::thread adder(&server::add, this, packet);
+                            adder.detach();
+                        }
                         break;
                     case action::act::del:
-                        del(packet);
+                        {
+                            std::thread deleter(&server::del, this, packet);
+                            deleter.detach();
+                        }
                         break;
                     case action::act::get:
-                        get(packet);
+                        {
+                            std::thread getter(&server::get, this, packet);
+                            getter.detach();
+                        }
                         break;
                     case action::act::list:
-                        list(packet);
+                        {
+                            std::thread lister(&server::list, this, packet);
+                            lister.detach();
+                        }
                         break;
                     case action::act::hello:
-                        hello(packet);
+                        {
+                            std::thread helloer(&server::hello, this, packet);
+                            helloer.detach();
+                        }
                         break;
                     default:
                     case action::act::invalid:

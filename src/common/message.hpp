@@ -123,6 +123,14 @@ namespace sik::common {
             return cmplx.has_value() ? cmplx->cmd_seq : simpl->cmd_seq;
         }
 
+        std::string get_title() {
+            char message[MESSAGE_TITLE];
+            memcpy(message, this->message.data(), MESSAGE_TITLE);
+            std::string str_message(message);
+
+            return str_message;
+        }
+
         std::string data_to_string() const {
             if (get_data_size() <= 0) {
                 return std::string{};
