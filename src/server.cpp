@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <optional>
 #include <csignal>
-#include "common/const.h"
-#include "server/server.hpp"
 #include "common/helper.hpp"
+#include "common/const.hpp"
+#include "server/server.hpp"
 
 namespace po = boost::program_options;
 
