@@ -33,15 +33,18 @@ namespace sik::common {
     struct server_message
             : public common_message {
         uint64_t max_space;
+        bool synchronized;
 
         server_message(
                 const std::string &mcast_addr,
                 uint16_t cmd_port,
                 const std::string &folder,
                 int timeout,
-                uint64_t max_space)
+                uint64_t max_space,
+                bool synchronized)
                 : common_message(mcast_addr, cmd_port, folder, timeout)
-                , max_space(max_space) {}
+                , max_space(max_space)
+                , synchronized(synchronized) {}
     };
 
     using client_message = common_message;

@@ -34,6 +34,7 @@ namespace sik::common {
     const char* OPEN_OPT                    = "rb";
     const char* CREATE_OPT                  = "w";
     constexpr int SEQ_START                 = 2115;
+    constexpr bool DFLT_SYNC                = false;
 }
 
 #endif //SIK_ZAD2_CONST_HPP

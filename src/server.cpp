@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
             (",b", po::value<uint64_t>()->default_value(sik::common::MAX_SPACE), "MAX_SPACE")
             (",f", po::value<std::string>()->required(), "SHRD_FLDR")
             (",t", po::value<int>()->default_value(sik::common::DFLT_WAIT), "TIMEOUT")
+            (",s", po::value<bool>()->default_value(sik::common::DFLT_SYNC), "SYNCHRONIZED")
             ("help", "HELP");
 
     po::variables_map vm;
@@ -39,7 +40,8 @@ int main(int argc, char *argv[]) {
             vm["-p"].as<uint16_t>(),
             vm["-f"].as<std::string>(),
             sik::common::check_range(vm["-t"].as<int>(), sik::common::MIN_WAIT, sik::common::MAX_WAIT),
-            vm["-b"].as<uint64_t>()
+            vm["-b"].as<uint64_t>(),
+            vm["-s"].as<bool>()
         };
 
         sik::server::server server{msg};
