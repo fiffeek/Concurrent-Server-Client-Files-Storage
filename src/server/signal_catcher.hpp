@@ -14,6 +14,7 @@ namespace sik::server {
 
     private:
         static void handle(int s) {
+            std::cerr << "\nCaught signal [" << std::to_string(s) << "]" << std::endl;
             signaled = true;
         }
 
