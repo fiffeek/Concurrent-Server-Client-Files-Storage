@@ -45,9 +45,6 @@ namespace sik::server {
             if (fs::exists(directory) && fs::is_directory(directory)) {
                 for (const fs::directory_entry& dir : fs::directory_iterator{directory})
                     index_file(dir.path());
-
-                if (max_space < folder_size)
-                    throw std::runtime_error("Folder size exceeds the maximal server size");
             } else {
                 throw std::runtime_error("Cannot open the given directory.");
             }
@@ -73,13 +70,13 @@ namespace sik::server {
         uint64_t get_free_space() {
             std::scoped_lock lock(mtx);
 
-            return max_space - folder_size;
+            return get_folders_space();
         }
 
         bool reserve(uint64_t space) {
             std::scoped_lock lock(mtx);
 
-            if (max_space - folder_size < space)
+            if (get_folders_space() < space)
                 return false;
 
             folder_size += space;
@@ -140,6 +137,13 @@ namespace sik::server {
     private:
         bool contains_nb(const std::string& file) {
             return files.find(file) != files.end();
+        }
+
+        uint64_t get_folders_space() {
+            if (max_space < folder_size)
+                return 0;
+
+            return max_space - folder_size;
         }
 
         std::string folder_name;

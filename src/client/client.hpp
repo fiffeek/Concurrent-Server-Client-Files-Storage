@@ -109,12 +109,14 @@ namespace sik::client {
                     logger.files_log(packet, results_container.add_files(packet));
                 }
             }
+
+            socket.reset_read_timeout();
         }
 
         void fetch_file(sockaddr_in server, std::string additional_data, uint16_t port) {
             try {
                 tcp_socket sock{};
-                sock.spawn_socket(server, (uint16_t) port);
+                sock.spawn_socket(server, port);
 
                 sik::common::file scheduled_file{fldr};
                 scheduled_file.createfrom(sock, additional_data);
@@ -247,7 +249,10 @@ namespace sik::client {
                             sik::client::action::act::can_add,
                             cm::pack_type::cmplx,
                             true);
-                    break;
+                    if (servers_cpy.has_next(iter))
+                        servers_cpy.next(iter);
+                    else
+                        break;
                 }
             }
 

@@ -18,12 +18,12 @@ namespace sik::common {
     }
 
     std::string get_port(const sockaddr_in& client) {
-        return std::to_string(client.sin_port);
+        return std::to_string(ntohs(client.sin_port));
     }
 
     std::string get_addr(const sockaddr_in& client) {
         char str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &(client.sin_addr), str, INET_ADDRSTRLEN); //TODO EXCP HANDLE
+        inet_ntop(AF_INET, &(client.sin_addr), str, INET_ADDRSTRLEN);
 
         return std::string(str);
     }
