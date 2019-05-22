@@ -53,39 +53,48 @@ namespace sik::server {
         }
 
         void send_file(sik::common::single_packet packet) {
-            tcp_socket sock{factory.spawn_socket()};
-            std::string filename = packet.data_to_string();
+            try {
+                tcp_socket sock{factory.spawn_socket()};
+                std::string filename = packet.data_to_string();
 
-            auto cmd = sik::common::make_command(
-                    sik::common::CONNECT_ME,
-                    packet.get_cmd_seq(),
-                    (uint64_t) sock.get_sock_port(),
-                    sik::common::to_vector(filename)
-                    );
+                auto cmd = sik::common::make_command(
+                        sik::common::CONNECT_ME,
+                        packet.get_cmd_seq(),
+                        (uint64_t) sock.get_sock_port(),
+                        sik::common::to_vector(filename)
+                );
+
+                try {
+                    socket.sendto(cmd, filename.length(), packet.client);
+                } catch (std::exception &e) {
+                    logger.cant_respond(__func__, packet.client, e.what());
+                    throw e;
+                }
+
+                int msg_sock = setup_clients_sock(sock);
+                if (msg_sock < 0)
+                    throw std::runtime_error("Cannot setup a client's socket");
+
+                tcp_socket client{msg_sock};
+                sik::common::file scheduled_file{fldr.file_path(filename)};
+
+                try {
+                    scheduled_file.sendto(client);
+                } catch (std::exception &e) {
+                    logger.cant_respond(__func__, packet.client, e.what());
+                    throw e;
+                }
+            } catch (std::exception& exception) {}
 
             try {
-                socket.sendto(cmd, filename.length(), packet.client);
+                fldr.unmark(packet.data_to_string());
             } catch (std::exception& e) {
-                logger.cant_respond(__func__, packet.client, e.what());
-                return;
-            }
-
-            int msg_sock = setup_clients_sock(sock);
-            if (msg_sock < 0)
-                return;
-
-            tcp_socket client{msg_sock};
-            sik::common::file scheduled_file{fldr.file_path(filename)};
-
-            try {
-                scheduled_file.sendto(client);
-            } catch (std::exception& e) {
-                logger.cant_respond(__func__, packet.client, e.what());
+                logger.error(e.what());
             }
         }
 
         void get(sik::common::single_packet packet) {
-            if (!fldr.contains(packet.data_to_string())) {
+            if (!fldr.contains_mark(packet.data_to_string())) {
                 logger.invalid_file(packet.client);
                 return;
             }
@@ -96,7 +105,7 @@ namespace sik::server {
 
         void del(sik::common::single_packet packet) {
             std::string filename = packet.data_to_string();
-            if (!fldr.contains(filename))
+            if (!fldr.contains_and_not_marked(filename))
                 return;
 
             try {
@@ -108,6 +117,8 @@ namespace sik::server {
 
         void receive_file(sik::common::single_packet packet, uint64_t reserved_space) {
             tcp_socket sock{factory.spawn_socket()};
+            std::string file_name{packet.data_to_string()};
+
             auto cmd = sik::common::make_command(
                     sik::common::CAN_ADD,
                     packet.get_cmd_seq(),
@@ -124,10 +135,10 @@ namespace sik::server {
 
                 tcp_socket client{msg_sock};
                 sik::common::file scheduled_file{fldr.file_path("")};
-                scheduled_file.createfrom(client, packet.data_to_string());
-                fldr.add_file(packet.data_to_string(), reserved_space);
+                scheduled_file.createfrom(client, file_name);
+                fldr.add_file(file_name, reserved_space);
             } catch (std::exception& e) {
-                fldr.unreserve(reserved_space);
+                fldr.unreserve(reserved_space, file_name);
             }
         }
 
@@ -138,7 +149,7 @@ namespace sik::server {
             if (fldr.contains(filename)
                 || filename.empty()
                 || filename.find("/n") != std::string::npos
-                || !fldr.reserve(size)) {
+                || !fldr.reserve(size, filename)) {
                 auto cmd = sik::common::make_command(
                         sik::common::NO_WAY,
                         packet.get_cmd_seq(),

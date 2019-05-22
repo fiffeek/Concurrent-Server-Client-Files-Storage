@@ -19,6 +19,8 @@ namespace sik::server {
     }
 
     class folder {
+        using string_set = std::unordered_set<std::string>;
+
     private:
         void index_file(const fs::path& single_file) {
             if (fs::is_regular_file(single_file)) {
@@ -73,24 +75,61 @@ namespace sik::server {
             return get_folders_space();
         }
 
-        bool reserve(uint64_t space) {
+        bool reserve(uint64_t space, const std::string& file_name) {
             std::scoped_lock lock(mtx);
 
             if (get_folders_space() < space)
                 return false;
 
+            if (reserved.find(file_name) != reserved.end())
+                return false;
+
+            reserved.insert(file_name);
             folder_size += space;
+
             return true;
         }
 
-        void unreserve(uint64_t space) {
+        void unreserve(uint64_t space, const std::string& file_name) {
             std::scoped_lock lock(mtx);
 
+            reserved.erase(file_name);
             folder_size -= space;
         }
 
         bool contains(const std::string& file) {
             std::scoped_lock lock(mtx);
+
+            return contains_nb(file);
+        }
+
+        bool contains_mark(const std::string& file) {
+            std::scoped_lock lock(mtx);
+
+            if (contains_nb(file)) {
+                being_sent.insert(file);
+            }
+
+            return contains_nb(file);
+        }
+
+        void unmark(const std::string& file) {
+            std::scoped_lock lock(mtx);
+
+            being_sent.erase(file);
+            if (queued_for_removal.find(file) != queued_for_removal.end()) {
+                queued_for_removal.erase(file);
+                remove_nb(file);
+            }
+        }
+
+        bool contains_and_not_marked(const std::string& file) {
+            std::scoped_lock lock(mtx);
+
+            if (being_sent.find(file) != being_sent.end()) {
+                queued_for_removal.insert(file);
+                return false;
+            }
 
             return contains_nb(file);
         }
@@ -105,6 +144,7 @@ namespace sik::server {
         void add_file(const std::string& filename, uint64_t filesize) {
             std::scoped_lock lock(mtx);
 
+            reserved.erase(filename);
             auto inserter = files.insert(filename);
 
             try {
@@ -117,7 +157,13 @@ namespace sik::server {
 
         void remove(const std::string& filename) {
             std::scoped_lock lock(mtx);
+            remove_nb(filename);
+        }
 
+        friend std::ostream& operator<<(std::ostream& os, folder& fldr);
+
+    private:
+        void remove_nb(const std::string& filename) {
             if (!contains_nb(filename))
                 throw std::runtime_error("File does not exist");
 
@@ -132,9 +178,6 @@ namespace sik::server {
             file_size.erase(filename);
         }
 
-        friend std::ostream& operator<<(std::ostream& os, folder& fldr);
-
-    private:
         bool contains_nb(const std::string& file) {
             return files.find(file) != files.end();
         }
@@ -147,8 +190,11 @@ namespace sik::server {
         }
 
         std::string folder_name;
-        std::unordered_set<std::string> files;
         std::unordered_map<std::string, uint64_t> file_size;
+        string_set files;
+        string_set reserved;
+        string_set being_sent;
+        string_set queued_for_removal;
         uint64_t folder_size;
         uint64_t max_space;
         std::mutex mtx;

@@ -42,6 +42,11 @@ namespace sik::server {
             std::cerr << "Cant read command, possibly empty or invalid: " << what << std::endl;
         }
 
+        void error(const char* what) {
+            std::scoped_lock lock(mtx);
+            std::cerr << "Error occured: " << what << std::endl;
+        }
+
     private:
         static constexpr const char* invalid_file_log = "File does not exist.";
         static constexpr const char* invalid_command_log = "Cannot recognise the given command.";
