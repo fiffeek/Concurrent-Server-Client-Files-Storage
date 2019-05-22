@@ -112,6 +112,16 @@ namespace sik::client {
             std::cout << "File " << file << " too big" << std::endl;
         }
 
+        void cant_send(const char* what) {
+            std::scoped_lock lock(mtx);
+            std::cerr << "Cannot send data to the socket: " << what << std::endl;
+        }
+
+        void cant_upload(const char* what) {
+            std::scoped_lock lock(mtx);
+            std::cerr << "Cannot finish uploading the file: " << what << std::endl;
+        }
+
     private:
         static constexpr const char* invalid_action = "Action not recognised.";
         static constexpr const char* invalid_packet = "Packet corrupted.";

@@ -35,7 +35,7 @@ namespace sik::client {
         }
 
     private:
-        void discover(client_socket& socket, bool should_log = true) {
+        void discover(client_socket& socket, servers_list& servers, bool should_log = true) {
             sik::common::single_packet packet{};
             timeval read_timeout{};
             auto cmd_seq_ctr = cmd_seq.get();
@@ -46,7 +46,13 @@ namespace sik::client {
                     std::vector<sik::common::byte>{}
                     );
 
-            socket.sendto(cmd, 0);
+            try {
+                socket.sendto(cmd, 0);
+            } catch (std::exception& e) {
+                logger.cant_send(e.what());
+                return;
+            }
+
             servers.clear();
             auto start = std::chrono::system_clock::now();
 
@@ -181,83 +187,95 @@ namespace sik::client {
         }
 
         void upload_helper(sik::common::file scheduled_file, std::string additional_data) {
-            client_socket sock{data};
-            sock.connect();
+            try {
+                client_socket sock{data};
+                servers_list servers_cpy{};
 
-            discover(sock, false);
+                sock.connect();
+                discover(sock, servers_cpy, false);
+                servers_cpy.sort();
 
-            servers.sort();
-            servers_list servers_cpy = servers;
+                auto iter = servers_cpy.iterator();
+                auto filename = scheduled_file.get_filename();
+                bool found_server = false;
+                if (servers_cpy.empty() || !servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
+                    logger.file_too_big(additional_data);
+                    return;
+                }
 
-            auto iter = servers_cpy.iterator();
-            auto filename = scheduled_file.get_filename();
-            bool found_server = false;
-            if (servers_cpy.empty() || !servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
-                logger.file_too_big(additional_data);
-                return;
-            }
+                while (servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
+                    sik::common::single_packet packet{};
+                    auto cmd_seq_ctr = cmd_seq.get();
 
-            while (servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
-                sik::common::single_packet packet{};
-                auto cmd_seq_ctr = cmd_seq.get();
-
-                auto cmd = sik::common::make_command(
-                        sik::common::ADD,
-                        cmd_seq_ctr,
-                        scheduled_file.get_file_size(),
-                        sik::common::to_vector(filename)
-                );
-
-                sock.sendto(cmd, filename.length(), servers_cpy.get_server(iter));
-                sock.receive(packet);
-
-                if (packet_handler.is_packet_valid(
-                        logger,
-                        cmd_seq_ctr,
-                        packet,
-                        sik::client::action::act::no_way,
-                        cm::pack_type::simpl,
-                        false)) {
-                    if (servers_cpy.has_next(iter))
-                        servers_cpy.next(iter);
-                    else
-                        break;
-                } else if (packet_handler.is_packet_valid(
-                        logger,
-                        cmd_seq_ctr,
-                        packet,
-                        sik::client::action::act::can_add,
-                        cm::pack_type::cmplx,
-                        false)) {
-
-                    found_server = true;
-                    std::thread sender(
-                            &client::upload_file,
-                            this,
-                            packet.client,
-                            additional_data,
-                            (uint16_t) packet.cmplx->param
+                    auto cmd = sik::common::make_command(
+                            sik::common::ADD,
+                            cmd_seq_ctr,
+                            scheduled_file.get_file_size(),
+                            sik::common::to_vector(filename)
                     );
 
-                    sender.detach();
-                    break;
-                } else {
-                    packet_handler.is_packet_valid(
+                    try {
+                        sock.sendto(cmd, filename.length(), servers_cpy.get_server(iter));
+
+                        if (sock.receive(packet) < 0)
+                            throw std::runtime_error("Cannot read the data");
+                    } catch (std::exception& e) {
+                        if (servers_cpy.has_next(iter))
+                            servers_cpy.next(iter);
+                        else
+                            break;
+                    }
+
+                    if (packet_handler.is_packet_valid(
+                            logger,
+                            cmd_seq_ctr,
+                            packet,
+                            sik::client::action::act::no_way,
+                            cm::pack_type::simpl,
+                            false)) {
+                        if (servers_cpy.has_next(iter))
+                            servers_cpy.next(iter);
+                        else
+                            break;
+                    } else if (packet_handler.is_packet_valid(
                             logger,
                             cmd_seq_ctr,
                             packet,
                             sik::client::action::act::can_add,
                             cm::pack_type::cmplx,
-                            true);
-                    if (servers_cpy.has_next(iter))
-                        servers_cpy.next(iter);
-                    else
-                        break;
-                }
-            }
+                            false)) {
 
-            if (!found_server)
-                logger.file_too_big(additional_data);
+                        found_server = true;
+                        std::thread sender(
+                                &client::upload_file,
+                                this,
+                                packet.client,
+                                additional_data,
+                                (uint16_t) packet.cmplx->param
+                        );
+
+                        sender.detach();
+                        break;
+                    } else {
+                        packet_handler.is_packet_valid(
+                                logger,
+                                cmd_seq_ctr,
+                                packet,
+                                sik::client::action::act::can_add,
+                                cm::pack_type::cmplx,
+                                true);
+                        if (servers_cpy.has_next(iter))
+                            servers_cpy.next(iter);
+                        else
+                            break;
+                    }
+                }
+
+                if (!found_server)
+                    logger.file_too_big(additional_data);
+            } catch (std::exception& e) {
+                logger.cant_upload(e.what());
+            }
         }
 
         void upload(const std::string& additional_data) {
@@ -297,7 +315,7 @@ namespace sik::client {
                         fetch(additional_data);
                         break;
                     case sik::client::input::act::discover:
-                        discover(socket);
+                        discover(socket, servers);
                         break;
                     case sik::client::input::act::search:
                         search(additional_data);
@@ -315,6 +333,7 @@ namespace sik::client {
             }
         }
 
+    private:
         message data;
         parser input_parser;
         sequence cmd_seq;

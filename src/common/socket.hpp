@@ -68,7 +68,7 @@ namespace sik::common {
                     0,
                     reinterpret_cast<const sockaddr *>(&remote_address),
                     sizeof remote_address) < 0)
-                throw std::runtime_error("Cannot send the data");
+                throw std::runtime_error(strerror(errno));
         }
 
         void close() {
