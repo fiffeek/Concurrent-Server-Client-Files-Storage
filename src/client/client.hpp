@@ -147,7 +147,10 @@ namespace sik::client {
                     sik::common::to_vector(additional_data)
             );
 
-            socket.sendto(cmd, additional_data.length());
+            socket.sendto(
+                    cmd,
+                    additional_data.length(),
+                    results_container.get_server(additional_data));
 
             if (socket.receive(packet) <= 0) {
                 logger.cant_receive();

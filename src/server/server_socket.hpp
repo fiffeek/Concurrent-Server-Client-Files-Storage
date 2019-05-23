@@ -28,14 +28,14 @@ namespace sik::server {
             ip_mreq.imr_interface.s_addr = htonl(INADDR_ANY);
             if (inet_aton(mcast_addr.c_str(), &ip_mreq.imr_multiaddr) == 0)
                 throw std::runtime_error("Could not connect to specified address");
-            
+
             if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (void *) &ip_mreq, sizeof ip_mreq) < 0)
                 throw std::runtime_error("Could not set socket options");
 
             int address_reuse = 1;
             if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &address_reuse, sizeof address_reuse) < 0)
                 throw std::runtime_error("Could not set socket options");
-
+            // TODO read timeout?
             timeval send_timeout{};
             send_timeout.tv_sec = 1;
             if (setsockopt (sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&send_timeout, sizeof(send_timeout)) < 0)

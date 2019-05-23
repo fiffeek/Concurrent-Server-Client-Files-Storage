@@ -186,6 +186,8 @@ namespace sik::server {
                     continue;
                 }
 
+                std::cout << "got" << std::endl;
+
                 switch(packet_handler.handle_packet(packet)) {
                     case action::act::add:
                         {
