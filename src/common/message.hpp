@@ -134,6 +134,14 @@ namespace sik::common {
             return str_message;
         }
 
+        bool is_simpl() {
+            return simpl.has_value();
+        }
+
+        bool is_cmplx() {
+            return cmplx.has_value();
+        }
+
         std::string data_to_string() const {
             if (get_data_size() <= 0) {
                 return std::string{};

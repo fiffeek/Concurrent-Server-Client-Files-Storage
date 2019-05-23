@@ -29,6 +29,10 @@ namespace sik::server {
             for (const auto& item : str_to_act) {
                 if (str_message.compare(item.first) == cm::OK) {
                     pack(packet, str_to_packet[item.first]);
+
+                    if (!check_packet(packet, item.second))
+                        return action::act::invalid;
+
                     return item.second;
                 }
             }
@@ -37,6 +41,22 @@ namespace sik::server {
         }
 
     private:
+        bool check_packet(cm::single_packet& packet, action::act packet_type) {
+            switch (packet_type) {
+                case action::act::hello:
+                    return packet.is_simpl() && packet.data_to_string().empty();
+                case action::act::list:
+                case action::act::get:
+                case action::act::del:
+                    return packet.is_simpl();
+                case action::act::add:
+                    return packet.is_cmplx();
+                default:
+                case action::act::invalid:
+                    return true;
+            }
+        }
+
         char_to_act str_to_act = {
                 {cm::HELLO,        action::act::hello},
                 {cm::LIST,         action::act::list},
