@@ -18,6 +18,7 @@ namespace sik::common {
         virtual void connect() = 0;
 
         ssize_t receive(sik::common::single_packet& packet) {
+            std::scoped_lock lock(mtx);
             sockaddr_in from{};
             socklen_t from_size = sizeof from;
 
@@ -87,6 +88,7 @@ namespace sik::common {
         uint16_t cmd_port;
         int timeout;
         sik::common::byte buff[sik::common::MAX_PACKET_SIZE];
+        std::mutex mtx;
     };
 }
 

@@ -165,6 +165,7 @@ namespace sik::common {
                 throw std::logic_error("Cannot return data size of undefined");
             }
         }
+
     private:
         void reset() {
             cmplx.reset();

@@ -148,7 +148,7 @@ namespace sik::server {
 
             if (fldr.contains(filename)
                 || filename.empty()
-                || filename.find("/n") != std::string::npos
+                || filename.find("/") != std::string::npos
                 || !fldr.reserve(size, filename)) {
                 auto cmd = sik::common::make_command(
                         sik::common::NO_WAY,

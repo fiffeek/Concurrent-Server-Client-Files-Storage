@@ -32,7 +32,7 @@ namespace sik::client {
                 throw std::runtime_error("Could not set socket options");
 
             timeval read_timeout{};
-            read_timeout.tv_sec = 1;
+            read_timeout.tv_sec = sik::common::DFLT_WAIT;
             if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout) < 0)
                 throw std::runtime_error("Could not set socket options");
 
