@@ -275,7 +275,7 @@ namespace sik::client {
                 }
 
                 if (!found_server)
-                    logger.file_too_big(additional_data);
+                    logger.file_too_big(additional_data); // TODO to remove?
             } catch (std::exception& e) {
                 logger.cant_upload(e.what());
             }
