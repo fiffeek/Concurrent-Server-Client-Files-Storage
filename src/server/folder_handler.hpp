@@ -81,10 +81,11 @@ namespace sik::server {
             if (get_folders_space() < space)
                 return false;
 
-            if (reserved.find(file_name) != reserved.end())
+            if (contains_nb(file_name))
                 return false;
 
-            reserved.insert(file_name);
+            files.insert(file_name);
+            file_size[file_name] = space;
             folder_size += space;
 
             return true;
@@ -93,7 +94,8 @@ namespace sik::server {
         void unreserve(uint64_t space, const std::string& file_name) {
             std::scoped_lock lock(mtx);
 
-            reserved.erase(file_name);
+            files.erase(file_name);
+            file_size.erase(file_name);
             folder_size -= space;
         }
 
@@ -103,56 +105,11 @@ namespace sik::server {
             return contains_nb(file);
         }
 
-        bool contains_mark(const std::string& file) {
-            std::scoped_lock lock(mtx);
-
-            if (contains_nb(file)) {
-                being_sent.insert(file);
-            }
-
-            return contains_nb(file);
-        }
-
-        void unmark(const std::string& file) {
-            std::scoped_lock lock(mtx);
-
-            being_sent.erase(file);
-            if (queued_for_removal.find(file) != queued_for_removal.end()) {
-                queued_for_removal.erase(file);
-                remove_nb(file);
-            }
-        }
-
-        bool contains_and_not_marked(const std::string& file) {
-            std::scoped_lock lock(mtx);
-
-            if (being_sent.find(file) != being_sent.end()) {
-                queued_for_removal.insert(file);
-                return false;
-            }
-
-            return contains_nb(file);
-        }
-
         fs::path file_path(const std::string& file) {
             std::scoped_lock lock(mtx);
 
             fs::path single_path{folder_name};
             return single_path.append(file);
-        }
-
-        void add_file(const std::string& filename, uint64_t filesize) {
-            std::scoped_lock lock(mtx);
-
-            reserved.erase(filename);
-            auto inserter = files.insert(filename);
-
-            try {
-                file_size[filename] = filesize;
-            } catch (...) {
-                files.erase(inserter.first);
-                throw;
-            }
         }
 
         void remove(const std::string& filename) {
@@ -192,9 +149,6 @@ namespace sik::server {
         std::string folder_name;
         std::unordered_map<std::string, uint64_t> file_size;
         string_set files;
-        string_set reserved;
-        string_set being_sent;
-        string_set queued_for_removal;
         uint64_t folder_size;
         uint64_t max_space;
         std::mutex mtx;

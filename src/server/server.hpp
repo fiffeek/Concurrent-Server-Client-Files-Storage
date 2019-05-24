@@ -56,6 +56,7 @@ namespace sik::server {
             try {
                 tcp_socket sock{factory.spawn_socket()};
                 std::string filename = packet.data_to_string();
+                sik::common::file scheduled_file{fldr.file_path(filename)};
 
                 auto cmd = sik::common::make_command(
                         sik::common::CONNECT_ME,
@@ -72,11 +73,11 @@ namespace sik::server {
                 }
 
                 int msg_sock = setup_clients_sock(sock);
-                if (msg_sock < 0)
+                if (msg_sock < 0) {
                     throw std::runtime_error("Cannot setup a client's socket");
+                }
 
                 tcp_socket client{msg_sock};
-                sik::common::file scheduled_file{fldr.file_path(filename)};
 
                 try {
                     scheduled_file.sendto(client);
@@ -85,16 +86,10 @@ namespace sik::server {
                     throw e;
                 }
             } catch (std::exception& exception) {}
-
-            try {
-                fldr.unmark(packet.data_to_string());
-            } catch (std::exception& e) {
-                logger.error(e.what());
-            }
         }
 
         void get(sik::common::single_packet packet) {
-            if (!fldr.contains_mark(packet.data_to_string())) {
+            if (!fldr.contains(packet.data_to_string())) {
                 logger.invalid_file(packet.client);
                 return;
             }
@@ -105,7 +100,7 @@ namespace sik::server {
 
         void del(sik::common::single_packet packet) {
             std::string filename = packet.data_to_string();
-            if (!fldr.contains_and_not_marked(filename))
+            if (!fldr.contains(filename))
                 return;
 
             try {
@@ -116,27 +111,28 @@ namespace sik::server {
         }
 
         void receive_file(sik::common::single_packet packet, uint64_t reserved_space) {
-            tcp_socket sock{factory.spawn_socket()};
             std::string file_name{packet.data_to_string()};
 
-            auto cmd = sik::common::make_command(
-                    sik::common::CAN_ADD,
-                    packet.get_cmd_seq(),
-                    (uint64_t) sock.get_sock_port(),
-                    std::vector<sik::common::byte>{}
-            );
-
             try {
+                tcp_socket sock{factory.spawn_socket()};
+                sik::common::file scheduled_file{fldr.file_path("")};
+
+                auto cmd = sik::common::make_command(
+                        sik::common::CAN_ADD,
+                        packet.get_cmd_seq(),
+                        (uint64_t) sock.get_sock_port(),
+                        std::vector<sik::common::byte>{}
+                );
+
                 socket.sendto(cmd, 0, packet.client);
                 int msg_sock = setup_clients_sock(sock);
 
-                if (msg_sock < 0)
+                if (msg_sock < 0) {
                     throw std::runtime_error("Bad socket");
+                }
 
                 tcp_socket client{msg_sock};
-                sik::common::file scheduled_file{fldr.file_path("")};
                 scheduled_file.createfrom(client, file_name);
-                fldr.add_file(file_name, reserved_space);
             } catch (std::exception& e) {
                 fldr.unreserve(reserved_space, file_name);
             }
