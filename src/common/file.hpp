@@ -96,7 +96,6 @@ namespace sik::common {
         }
 
         void open_file(const char* opts, const fs::path& path) {
-            std::cout << file_path.string() << std::endl;
             file_ptr = fopen(path.c_str(), opts);
 
             if (file_ptr == nullptr)
