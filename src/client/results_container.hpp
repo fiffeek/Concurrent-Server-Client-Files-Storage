@@ -22,8 +22,8 @@ namespace sik::client {
                     );
             files.insert(files.end(), filtered_results.begin(), filtered_results.end());
             std::for_each(
-                    files.begin(),
-                    files.end(),
+                    result.begin(),
+                    result.end(),
                     [&] (const std::string& file) { belongs[file] = packet.client; }
                     );
 
