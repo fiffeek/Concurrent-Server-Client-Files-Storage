@@ -200,7 +200,6 @@ namespace sik::client {
 
                 auto iter = servers_cpy.iterator();
                 auto filename = scheduled_file.get_filename();
-                bool found_server = false;
                 if (servers_cpy.empty() || !servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
                     logger.file_too_big(additional_data);
                     return;
@@ -248,7 +247,6 @@ namespace sik::client {
                             cm::pack_type::cmplx,
                             false)) {
 
-                        found_server = true;
                         std::thread sender(
                                 &client::upload_file,
                                 this,
@@ -273,9 +271,6 @@ namespace sik::client {
                             break;
                     }
                 }
-
-                if (!found_server)
-                    logger.file_too_big(additional_data); // TODO to remove?
             } catch (std::exception& e) {
                 logger.cant_upload(e.what());
             }
