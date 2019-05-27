@@ -1,17 +1,18 @@
-#ifndef SIK_ZAD2_SERVER_HPP
-#define SIK_ZAD2_SERVER_HPP
+#ifndef SIK_ZAD2_SERVER_SERVER_HPP
+#define SIK_ZAD2_SERVER_SERVER_HPP
 
 #include <iostream>
 #include <cstdint>
 #include <dirent.h>
 #include <thread>
 #include <ifaddrs.h>
-#include "folder_handler.hpp"
-#include "server_socket.hpp"
-#include "packet_handler.hpp"
-#include "logger.hpp"
-#include "tcp_socket_factory.hpp"
-#include "signal_catcher.hpp"
+#include "../client/client.hpp"
+#include "../server/folder_handler.hpp"
+#include "../server/server_socket.hpp"
+#include "../server/packet_handler.hpp"
+#include "../server/logger.hpp"
+#include "../server/tcp_socket_factory.hpp"
+#include "../server/signal_catcher.hpp"
 #include "../common/message.hpp"
 #include "../common/tcp_socket.hpp"
 #include "../common/file.hpp"
@@ -186,7 +187,7 @@ namespace sik::server {
                 auto sync_servers_sock = setup_sync(sock.get_sock_port());
                 auto my_ip = sik::common::get_addr(get_ip());
 
-                for (;;) {
+                while (catcher.can_continue()) {
                     try {
                         auto query = fldr.filter_and_get_files(std::string{});
                         sock.send_files_to(query, sync_servers_sock);
@@ -227,6 +228,16 @@ namespace sik::server {
                 }
 
             } catch (std::exception& e) {}
+        }
+
+        void handle_quit() {
+            sik::client::client client{data};
+            auto all_files = fldr.filter_and_get_files(std::string{});
+
+            for (const auto& file : all_files) {
+                auto single_path = fldr.file_path(file);
+                client.upload(single_path.string(), true);
+            }
         }
 
     public:
@@ -290,6 +301,9 @@ namespace sik::server {
                         break;
                 }
             }
+
+            if (data.synchronized)
+                handle_quit();
         }
 
     private:

@@ -1,5 +1,5 @@
-#ifndef SIK_ZAD2_SIGNAL_CATCHER_HPP
-#define SIK_ZAD2_SIGNAL_CATCHER_HPP
+#ifndef SIK_ZAD2_SERVER_SIGNAL_CATCHER_HPP
+#define SIK_ZAD2_SERVER_SIGNAL_CATCHER_HPP
 
 #include <signal.h>
 #include <iostream>

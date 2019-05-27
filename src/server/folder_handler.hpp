@@ -1,5 +1,5 @@
-#ifndef SIK_ZAD2_FOLDER_HANDLER_HPP
-#define SIK_ZAD2_FOLDER_HANDLER_HPP
+#ifndef SIK_ZAD2_SERVER_FOLDER_HANDLER_HPP
+#define SIK_ZAD2_SERVER_FOLDER_HANDLER_HPP
 
 #include <string>
 #include <vector>

@@ -1,5 +1,5 @@
-#ifndef SIK_ZAD2_PACKET_HANDLER_HPP
-#define SIK_ZAD2_PACKET_HANDLER_HPP
+#ifndef SIK_ZAD2_SERVER_PACKET_HANDLER_HPP
+#define SIK_ZAD2_SERVER_PACKET_HANDLER_HPP
 
 #include <vector>
 #include <iostream>

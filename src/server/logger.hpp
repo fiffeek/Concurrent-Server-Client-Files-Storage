@@ -1,5 +1,5 @@
-#ifndef SIK_ZAD2_LOGGER_HPP
-#define SIK_ZAD2_LOGGER_HPP
+#ifndef SIK_ZAD2_SERVER_LOGGER_HPP
+#define SIK_ZAD2_SERVER_LOGGER_HPP
 
 
 #include <netinet/in.h>

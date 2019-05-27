@@ -1,5 +1,5 @@
-#ifndef SIK_ZAD2_TCP_SOCKET_FACTORY_HPP
-#define SIK_ZAD2_TCP_SOCKET_FACTORY_HPP
+#ifndef SIK_ZAD2_SERVER_TCP_SOCKET_FACTORY_HPP
+#define SIK_ZAD2_SERVER_TCP_SOCKET_FACTORY_HPP
 
 #include <sys/socket.h>
 #include <netinet/in.h>
