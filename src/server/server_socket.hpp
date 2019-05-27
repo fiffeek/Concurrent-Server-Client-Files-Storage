@@ -37,7 +37,7 @@ namespace sik::server {
                 throw std::runtime_error("Could not set socket options");
             // TODO read timeout?
             timeval send_timeout{};
-            send_timeout.tv_sec = 1;
+            send_timeout.tv_sec = sik::common::DFLT_WAIT;
             if (setsockopt (sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&send_timeout, sizeof(send_timeout)) < 0)
                 throw std::runtime_error("Could not set socket options");
 

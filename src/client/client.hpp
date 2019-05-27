@@ -300,7 +300,7 @@ namespace sik::client {
             bool should_continue = true;
 
             while (should_continue) {
-                std::string additional_data;
+                std::string additional_data{};
 
                 switch (input_parser.parse_line(additional_data)) {
                     case sik::client::input::act::upload:
