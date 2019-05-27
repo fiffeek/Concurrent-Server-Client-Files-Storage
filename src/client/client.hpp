@@ -7,13 +7,13 @@
 #include <bits/types.h>
 #include <thread>
 #include <boost/filesystem.hpp>
-#include "input_parser.hpp"
-#include "sequence_iter.hpp"
-#include "client_socket.hpp"
-#include "packet_handler.hpp"
-#include "servers_list.hpp"
-#include "logger.hpp"
-#include "results_container.hpp"
+#include "../client/input_parser.hpp"
+#include "../client/sequence_iter.hpp"
+#include "../client/client_socket.hpp"
+#include "../client/packet_handler.hpp"
+#include "../client/servers_list.hpp"
+#include "../client/logger.hpp"
+#include "../client/results_container.hpp"
 #include "../common/message.hpp"
 #include "../common/tcp_socket.hpp"
 #include "../common/file.hpp"
@@ -189,7 +189,7 @@ namespace sik::client {
             }
         }
 
-        void upload_helper(sik::common::file scheduled_file, std::string additional_data) {
+        void upload_helper(sik::common::file scheduled_file, std::string additional_data, bool inline_thread) {
             try {
                 client_socket sock{data};
                 servers_list servers_cpy{};
@@ -255,7 +255,11 @@ namespace sik::client {
                                 (uint16_t) packet.cmplx->param
                         );
 
-                        sender.detach();
+                        if (inline_thread)
+                            sender.join();
+                        else
+                            sender.detach();
+
                         break;
                     } else {
                         packet_handler.is_packet_valid(
@@ -276,7 +280,8 @@ namespace sik::client {
             }
         }
 
-        void upload(const std::string& additional_data) {
+    public:
+        void upload(const std::string& additional_data, bool inline_thread = false) {
             sik::common::file scheduled_file{fs::path{additional_data}};
 
             if (!scheduled_file.check_open()) {
@@ -288,12 +293,16 @@ namespace sik::client {
                     &client::upload_helper,
                     this,
                     scheduled_file,
-                    additional_data
+                    additional_data,
+                    inline_thread
                     );
-            helper.detach();
+
+            if (inline_thread)
+                helper.join();
+            else
+                helper.detach();
         }
 
-    public:
         void run() {
             std::cout << "client is on" << std::endl;
             socket.connect();
