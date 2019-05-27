@@ -65,14 +65,9 @@ namespace sik::client {
             sik::common::socket::sendto(cmd, data_size, addr);
         }
 
-        void set_read_timeout(const timeval& timeout) {
-            if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) < 0)
-                throw std::runtime_error("Could not set socket options");
-        }
-
         void reset_read_timeout() {
             timeval read_timeout{};
-            read_timeout.tv_sec = 1;
+            read_timeout.tv_sec = sik::common::DFLT_WAIT;
 
             set_read_timeout(read_timeout);
         }

@@ -18,16 +18,7 @@ namespace sik::common {
                 : sock(-1) {}
 
         uint16_t get_sock_port() {
-            sockaddr_in sin{};
-            int addrlen = sizeof(sin);
-
-            if (getsockname(
-                    sock,
-                    (sockaddr *) &sin,
-                    (socklen_t *) &addrlen) == sik::common::OK)
-                return ntohs(sin.sin_port);
-            else
-                throw std::runtime_error("Could not get socket's port");
+            return sik::common::get_sock_port(sock);
         }
 
         void spawn_socket(const std::string &addr, uint16_t port) {

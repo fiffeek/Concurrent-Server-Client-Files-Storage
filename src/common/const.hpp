@@ -35,6 +35,10 @@ namespace sik::common {
     const char* CREATE_OPT                  = "w";
     constexpr int SEQ_START                 = 2115;
     constexpr bool DFLT_SYNC                = false;
+    constexpr uint16_t NO_PORT              = 0;
+    constexpr double SYNC_TIMED             = 0.2;
+    constexpr int STD_SYNC_WAIT             = 200;
+    constexpr int PORT_OFFSET               = 2;
 }
 
 #endif //SIK_ZAD2_CONST_HPP

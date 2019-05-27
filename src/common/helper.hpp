@@ -21,11 +21,15 @@ namespace sik::common {
         return std::to_string(ntohs(client.sin_port));
     }
 
-    std::string get_addr(const sockaddr_in& client) {
+    std::string get_addr(const in_addr& client) {
         char str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &(client.sin_addr), str, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &client, str, INET_ADDRSTRLEN);
 
         return std::string(str);
+    }
+
+    std::string get_addr(const sockaddr_in& client) {
+        return get_addr(client.sin_addr);
     }
 
     void invalid_packet_log(const char* mess, const sockaddr_in& node) {
@@ -47,6 +51,19 @@ namespace sik::common {
 
     double get_diff(const std::chrono::time_point<std::chrono::system_clock>& start) {
         return (std::chrono::duration<double>(std::chrono::system_clock::now() - start)).count();
+    }
+
+    uint16_t get_sock_port(int sock) {
+        sockaddr_in sin{};
+        int addrlen = sizeof(sin);
+
+        if (getsockname(
+                sock,
+                (sockaddr *) &sin,
+                (socklen_t *) &addrlen) == sik::common::OK)
+            return ntohs(sin.sin_port);
+        else
+            throw std::runtime_error("Could not get socket's port");
     }
 }
 

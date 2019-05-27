@@ -45,6 +45,13 @@ namespace sik::common {
                 : common_message(mcast_addr, cmd_port, folder, timeout)
                 , max_space(max_space)
                 , synchronized(synchronized) {}
+
+        server_message cpy_to_port(uint16_t port) {
+            server_message msg = *this;
+            msg.cmd_port = port;
+
+            return msg;
+        }
     };
 
     using client_message = common_message;
@@ -116,6 +123,12 @@ namespace sik::common {
         explicit single_packet(const sockaddr_in &client)
             : client(client) {
             reset();
+        }
+
+        single_packet(const sockaddr_in &client, uint64_t cmd_seq)
+            : single_packet(client) {
+            simpl = std::make_optional(simpl_cmd{});
+            simpl->cmd_seq = cmd_seq;
         }
 
         single_packet() {

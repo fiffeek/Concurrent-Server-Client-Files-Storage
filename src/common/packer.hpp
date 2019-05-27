@@ -15,7 +15,7 @@ namespace sik::common {
     };
 
     class packer {
-    protected:
+    public:
         void pack(cm::single_packet& packet, pack_type type) {
             switch(type) {
                 case simpl:

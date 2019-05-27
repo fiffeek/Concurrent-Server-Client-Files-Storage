@@ -82,6 +82,15 @@ namespace sik::common {
             }
         }
 
+        uint16_t get_sock_port() {
+            return sik::common::get_sock_port(sock);
+        }
+
+        void set_read_timeout(const timeval& timeout) {
+            if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) < 0)
+                throw std::runtime_error("Could not set socket options");
+        }
+
     protected:
         int sock;
         std::string mcast_addr;

@@ -22,7 +22,7 @@ namespace sik::server {
             invalid_packet_log(invalid_command_log, packet.client);
         }
 
-        void cannot_remove(std::string& file) {
+        void cannot_remove(const std::string& file) {
             std::scoped_lock lock(mtx);
             std::cerr << "Cannot remove the file " << file << std::endl;
         }

@@ -59,10 +59,15 @@ namespace sik::server {
             return packet;
         }
 
+        void disable_loopback() {
+            int loopback = 0;
+            if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_LOOP, &loopback, sizeof loopback) < 0)
+                throw std::runtime_error("Could not set the socket options");
+        }
+
         void send_files_to(std::vector<std::string> &files, sik::common::single_packet &clients_packet) {
-            if (files.size() == 0 || files.empty()) {
+            if (files.size() == 0 || files.empty())
                 return;
-            }
 
             std::string single_message{};
             uint64_t message_size = 0;
