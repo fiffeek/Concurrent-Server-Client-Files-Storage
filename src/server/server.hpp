@@ -6,7 +6,6 @@
 #include <dirent.h>
 #include <thread>
 #include <ifaddrs.h>
-#include "../client/client.hpp"
 #include "../server/folder_handler.hpp"
 #include "../server/server_socket.hpp"
 #include "../server/packet_handler.hpp"
@@ -17,6 +16,7 @@
 #include "../common/tcp_socket.hpp"
 #include "../common/file.hpp"
 #include "../common/packer.hpp"
+#include "../client/client.hpp"
 #include "../client/results_container.hpp"
 #include "../client/client_socket.hpp"
 
@@ -352,8 +352,8 @@ namespace sik::server {
             if (getifaddrs(&ifaddr) < 0)
                 throw std::runtime_error("Could not get current IP4 address");
 
-            for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) {
-                if (ifa->ifa_addr == NULL)
+            for (ifa = ifaddr, n = 0; ifa != nullptr; ifa = ifa->ifa_next, n++) {
+                if (ifa->ifa_addr == nullptr)
                     continue;
 
                 family = ifa->ifa_addr->sa_family;
