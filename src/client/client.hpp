@@ -304,7 +304,6 @@ namespace sik::client {
         }
 
         void run() {
-            std::cout << "client is on" << std::endl;
             socket.connect();
             bool should_continue = true;
 
