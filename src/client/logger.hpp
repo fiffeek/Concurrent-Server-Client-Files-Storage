@@ -48,12 +48,16 @@ namespace sik::client {
             }
         }
 
-        void invalid_file_name_log() {
+        void invalid_file_name_log(bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cout << "Given filename is invalid." << std::endl;
         }
 
-        void cant_receive() {
+        void cant_receive(bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cerr << "Cant receive the packet with port specified" << std::endl; // TODO ASK ABOUT IT
         }
@@ -97,12 +101,16 @@ namespace sik::client {
                       << ")" << std::string{desc} << std::endl;
         }
 
-        void invalid_input_log() {
+        void invalid_input_log(bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cerr << "Input is not correct. Skipping." << std::endl;
         }
 
-        void file_does_not_exist(const std::string& file) {
+        void file_does_not_exist(const std::string& file, bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cout << "File " << file << " does not exist" << std::endl;
         }
@@ -112,12 +120,16 @@ namespace sik::client {
             std::cout << "File " << file << " too big" << std::endl;
         }
 
-        void cant_send(const char* what) {
+        void cant_send(const char* what, bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cerr << "Cannot send data to the socket: " << what << std::endl;
         }
 
-        void cant_upload(const char* what) {
+        void cant_upload(const char* what, bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cerr << "Cannot finish uploading the file: " << what << std::endl;
         }

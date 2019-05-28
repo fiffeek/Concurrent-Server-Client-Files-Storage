@@ -39,6 +39,7 @@ namespace sik::common {
     constexpr double SYNC_TIMED             = 0.2;
     constexpr int STD_SYNC_WAIT             = 200;
     constexpr int PORT_OFFSET               = 2;
+    constexpr bool DFLT_LOG                 = false;
 }
 
 #endif //SIK_ZAD2_CONST_HPP

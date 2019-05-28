@@ -49,7 +49,7 @@ namespace sik::client {
             try {
                 socket.sendto(cmd, 0);
             } catch (std::exception& e) {
-                logger.cant_send(e.what());
+                logger.cant_send(e.what(), data.additional_log);
                 return;
             }
 
@@ -134,7 +134,7 @@ namespace sik::client {
 
         void fetch(const std::string& additional_data) {
             if (!results_container.contains(additional_data)) {
-                logger.invalid_file_name_log();
+                logger.invalid_file_name_log(data.additional_log);
                 return;
             }
 
@@ -153,7 +153,7 @@ namespace sik::client {
                     results_container.get_server(additional_data));
 
             if (socket.receive(packet) <= 0) {
-                logger.cant_receive();
+                logger.cant_receive(data.additional_log); // TODO ?
                 return;
             }
 
@@ -200,6 +200,7 @@ namespace sik::client {
 
                 auto iter = servers_cpy.iterator();
                 auto filename = scheduled_file.get_filename();
+                bool any_sent = false;
                 if (servers_cpy.empty() || !servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
                     logger.file_too_big(additional_data);
                     return;
@@ -247,6 +248,7 @@ namespace sik::client {
                             cm::pack_type::cmplx,
                             false)) {
 
+                        any_sent = true;
                         std::thread sender(
                                 &client::upload_file,
                                 this,
@@ -275,8 +277,12 @@ namespace sik::client {
                             break;
                     }
                 }
+
+                if (!any_sent)
+                    logger.file_too_big(additional_data);
+
             } catch (std::exception& e) {
-                logger.cant_upload(e.what());
+                logger.cant_upload(e.what(), data.additional_log);
             }
         }
 
@@ -285,7 +291,7 @@ namespace sik::client {
             sik::common::file scheduled_file{fs::path{additional_data}};
 
             if (!scheduled_file.check_open()) {
-                logger.file_does_not_exist(additional_data);
+                logger.file_does_not_exist(additional_data, data.additional_log);
                 return;
             }
 
@@ -328,7 +334,7 @@ namespace sik::client {
                         break;
                     default:
                     case sik::client::input::act::invalid:
-                        logger.invalid_input_log();
+                        logger.invalid_input_log(data.additional_log);
                         break;
                     case sik::client::input::act::exit:
                         should_continue = false;

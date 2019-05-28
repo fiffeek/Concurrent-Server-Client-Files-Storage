@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
             (",f", po::value<std::string>()->required(), "SHRD_FLDR")
             (",t", po::value<int>()->default_value(sik::common::DFLT_WAIT), "TIMEOUT")
             (",s", po::value<bool>()->default_value(sik::common::DFLT_SYNC), "SYNCHRONIZED")
+            (",l", po::value<bool>()->default_value(sik::common::DFLT_LOG), "ADDITIONAL LOG")
             ("help", "HELP");
 
     po::variables_map vm;
@@ -41,7 +42,8 @@ int main(int argc, char *argv[]) {
             vm["-f"].as<std::string>(),
             sik::common::check_range(vm["-t"].as<int>(), sik::common::MIN_WAIT, sik::common::MAX_WAIT),
             vm["-b"].as<uint64_t>(),
-            vm["-s"].as<bool>()
+            vm["-s"].as<bool>(),
+            vm["-l"].as<bool>()
         };
 
         sik::server::server server{msg};

@@ -18,16 +18,19 @@ namespace sik::common {
         uint16_t cmd_port;
         std::string folder;
         int timeout;
+        bool additional_log;
 
         common_message(
                 const std::string &mcast_addr,
                 uint16_t cmd_port,
                 const std::string &folder,
-                int timeout)
+                int timeout,
+                bool additional_log)
                 : mcast_addr(mcast_addr)
                 , cmd_port(cmd_port)
                 , folder(folder)
-                , timeout(timeout) {}
+                , timeout(timeout)
+                , additional_log(additional_log) {}
     };
 
     struct server_message
@@ -41,8 +44,9 @@ namespace sik::common {
                 const std::string &folder,
                 int timeout,
                 uint64_t max_space,
-                bool synchronized)
-                : common_message(mcast_addr, cmd_port, folder, timeout)
+                bool synchronized,
+                bool additional_log)
+                : common_message(mcast_addr, cmd_port, folder, timeout, additional_log)
                 , max_space(max_space)
                 , synchronized(synchronized) {}
 

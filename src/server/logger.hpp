@@ -22,12 +22,20 @@ namespace sik::server {
             invalid_packet_log(invalid_command_log, packet.client);
         }
 
-        void cannot_remove(const std::string& file) {
+        void cannot_remove(const std::string& file, bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cerr << "Cannot remove the file " << file << std::endl;
         }
 
-        void cant_respond(std::string func, const sockaddr_in& client, const char* what) {
+        void cant_respond(
+                std::string func,
+                const sockaddr_in& client,
+                const char* what,
+                bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cerr << "Error in function "
                       << func << " : "
@@ -37,12 +45,16 @@ namespace sik::server {
                       << std::endl;
         }
 
-        void cant_read_cmd(const char* what) {
+        void cant_read_cmd(const char* what, bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cerr << "Cant read command, possibly empty or invalid: " << what << std::endl;
         }
 
-        void error(const char* what) {
+        void error(const char* what, bool log) {
+            if (!log) return;
+
             std::scoped_lock lock(mtx);
             std::cerr << "Error occured: " << what << std::endl;
         }

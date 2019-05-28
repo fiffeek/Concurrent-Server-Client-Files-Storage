@@ -44,7 +44,7 @@ namespace sik::server {
 
                 socket.sendto(cmd, data.mcast_addr.length(), packet.client);
             } catch (std::exception& e) {
-                logger.cant_respond(__func__, packet.client, e.what());
+                logger.cant_respond(__func__, packet.client, e.what(), data.additional_log);
             }
         }
 
@@ -53,7 +53,7 @@ namespace sik::server {
                 std::vector<std::string> query = fldr.filter_and_get_files(packet.data_to_string());
                 socket.send_files_to(query, packet);
             } catch (std::exception& e) {
-                logger.cant_respond(__func__, packet.client, e.what());
+                logger.cant_respond(__func__, packet.client, e.what(), data.additional_log);
             }
         }
 
@@ -73,7 +73,7 @@ namespace sik::server {
                 try {
                     socket.sendto(cmd, filename.length(), packet.client);
                 } catch (std::exception &e) {
-                    logger.cant_respond(__func__, packet.client, e.what());
+                    logger.cant_respond(__func__, packet.client, e.what(), data.additional_log);
                     throw e;
                 }
 
@@ -87,7 +87,7 @@ namespace sik::server {
                 try {
                     scheduled_file.sendto(client);
                 } catch (std::exception &e) {
-                    logger.cant_respond(__func__, packet.client, e.what());
+                    logger.cant_respond(__func__, packet.client, e.what(), data.additional_log);
                     throw e;
                 }
             } catch (std::exception& exception) {}
@@ -110,7 +110,7 @@ namespace sik::server {
             try {
                 fldr.remove(filename);
             } catch (std::exception& e) {
-                logger.cannot_remove(filename);
+                logger.cannot_remove(filename, data.additional_log);
             }
         }
 
@@ -165,7 +165,7 @@ namespace sik::server {
                 try {
                     socket.sendto(cmd, filename.length(), packet.client);
                 } catch (std::exception& e) {
-                    logger.cant_respond(__func__, packet.client, e.what());
+                    logger.cant_respond(__func__, packet.client, e.what(), data.additional_log);
                 }
 
                 return;
@@ -244,7 +244,6 @@ namespace sik::server {
         void run() {
             fldr.index_files();
             socket.connect();
-            std::cout << fldr << std::endl;
 
             if (data.synchronized) {
                 std::thread synchronizer(&server::sync, this);
@@ -258,7 +257,7 @@ namespace sik::server {
                     packet = socket.receive();
                 } catch (std::exception& e) {
                     if (catcher.can_continue())
-                        logger.cant_read_cmd(e.what());
+                        logger.cant_read_cmd(e.what(), data.additional_log);
                     continue;
                 }
 

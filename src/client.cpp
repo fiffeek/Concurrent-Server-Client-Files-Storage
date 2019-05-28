@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
             (",p", po::value<uint16_t>()->required(), "CMD_PORT")
             (",o", po::value<std::string>()->required(), "OUT_FLDR")
             (",t", po::value<int>()->default_value(sik::common::DFLT_WAIT), "TIMEOUT")
+            (",l", po::value<bool>()->default_value(sik::common::DFLT_LOG), "ADDITIONAL LOG")
             ("help", "HELP");
 
     po::variables_map vm;
@@ -37,7 +38,8 @@ int main(int argc, char *argv[]) {
                 vm["-g"].as<std::string>(),
                 vm["-p"].as<uint16_t>(),
                 vm["-o"].as<std::string>(),
-                sik::common::check_range(vm["-t"].as<int>(), sik::common::MIN_WAIT, sik::common::MAX_WAIT)
+                sik::common::check_range(vm["-t"].as<int>(), sik::common::MIN_WAIT, sik::common::MAX_WAIT),
+                vm["-l"].as<bool>()
         };
 
         sik::client::client client{msg};
