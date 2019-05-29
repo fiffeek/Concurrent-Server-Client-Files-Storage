@@ -55,11 +55,16 @@ namespace sik::client {
             std::cout << "Given filename is invalid." << std::endl;
         }
 
-        void cant_receive(bool log) {
-            if (!log) return;
-
+        void cant_receive(const std::string& filename) {
             std::scoped_lock lock(mtx);
-            std::cerr << "Cant receive the packet with port specified" << std::endl; // TODO ASK ABOUT IT
+            std::cout << "File "
+                      << filename
+                      << " uploading failed "
+                      << "("
+                      << ":"
+                      << ") "
+                      << "Cant receive the packet with port specified"
+                      << std::endl;
         }
 
         void file_downloaded(const std::string& filename, const sockaddr_in& server, uint16_t port) {
@@ -79,7 +84,7 @@ namespace sik::client {
             std::cout << "File " << filename << " downloading failed "
                       << "(" << sik::common::get_addr(server)
                       << ":" << std::to_string(port)
-                      << ")" << std::string{desc} << std::endl;
+                      << ") " << std::string{desc} << std::endl;
         }
 
         void file_uploaded(const std::string& filename, const sockaddr_in& server, uint16_t port) {
@@ -98,7 +103,7 @@ namespace sik::client {
             std::cout << "File " << filename << " uploading failed "
                       << "(" << sik::common::get_addr(server)
                       << ":" << std::to_string(port)
-                      << ")" << std::string{desc} << std::endl;
+                      << ") " << std::string{desc} << std::endl;
         }
 
         void invalid_input_log(bool log) {

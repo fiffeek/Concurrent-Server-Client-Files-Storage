@@ -153,7 +153,7 @@ namespace sik::client {
                     results_container.get_server(additional_data));
 
             if (socket.receive(packet) <= 0) {
-                logger.cant_receive(data.additional_log); // TODO ?
+                logger.cant_receive(additional_data);
                 return;
             }
 
