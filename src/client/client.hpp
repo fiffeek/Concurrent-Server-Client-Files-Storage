@@ -291,7 +291,7 @@ namespace sik::client {
             sik::common::file scheduled_file{fs::path{additional_data}};
 
             if (!scheduled_file.check_open()) {
-                logger.file_does_not_exist(additional_data, data.additional_log);
+                logger.file_does_not_exist(additional_data);
                 return;
             }
 

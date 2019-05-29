@@ -113,9 +113,7 @@ namespace sik::client {
             std::cerr << "Input is not correct. Skipping." << std::endl;
         }
 
-        void file_does_not_exist(const std::string& file, bool log) {
-            if (!log) return;
-
+        void file_does_not_exist(const std::string& file) {
             std::scoped_lock lock(mtx);
             std::cout << "File " << file << " does not exist" << std::endl;
         }
