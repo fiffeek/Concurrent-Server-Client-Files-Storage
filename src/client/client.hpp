@@ -132,48 +132,64 @@ namespace sik::client {
             }
         }
 
-        void fetch(const std::string& additional_data) {
-            if (!results_container.contains(additional_data)) {
-                logger.invalid_file_name_log(data.additional_log);
-                return;
-            }
+        void fetch_helper(std::string additional_data, container results_container) {
+            try {
+                client_socket socket{data};
+                sik::common::single_packet packet{};
+                auto cmd_seq_ctr = cmd_seq.get();
 
-            sik::common::single_packet packet{};
-            auto cmd_seq_ctr = cmd_seq.get();
-
-            auto cmd = sik::common::make_command(
-                    sik::common::GET,
-                    cmd_seq_ctr,
-                    sik::common::to_vector(additional_data)
-            );
-
-            socket.sendto(
-                    cmd,
-                    additional_data.length(),
-                    results_container.get_server(additional_data));
-
-            if (socket.receive(packet) <= 0) {
-                logger.cant_receive(additional_data);
-                return;
-            }
-
-            if (packet_handler.is_packet_valid(
-                    logger,
-                    cmd_seq_ctr,
-                    packet,
-                    sik::client::action::act::connect_me,
-                    cm::pack_type::cmplx)) {
-
-                std::thread getter(
-                        &client::fetch_file,
-                        this,
-                        results_container.get_server(additional_data),
-                        additional_data,
-                        (uint16_t) packet.cmplx->param
+                auto cmd = sik::common::make_command(
+                        sik::common::GET,
+                        cmd_seq_ctr,
+                        sik::common::to_vector(additional_data)
                 );
 
-                getter.detach();
+                socket.connect();
+                socket.sendto(
+                        cmd,
+                        additional_data.length(),
+                        results_container.get_server(additional_data));
+
+                if (socket.receive(packet) <= 0) {
+                    logger.cant_receive(additional_data);
+                    return;
+                }
+
+                if (packet_handler.is_packet_valid(
+                        logger,
+                        cmd_seq_ctr,
+                        packet,
+                        sik::client::action::act::connect_me,
+                        cm::pack_type::cmplx)) {
+
+                    std::thread getter(
+                            &client::fetch_file,
+                            this,
+                            results_container.get_server(additional_data),
+                            additional_data,
+                            (uint16_t) packet.cmplx->param
+                    );
+
+                    getter.detach();
+                }
+            } catch (std::exception& e) {
+                logger.cant_receive(additional_data);
             }
+        }
+
+        void fetch(const std::string& additional_data) {
+            if (!results_container.contains(additional_data)) {
+                logger.invalid_file_name_log();
+                return;
+            }
+
+            std::thread fetch_hlp(
+                    &client::fetch_helper,
+                    this,
+                    additional_data,
+                    results_container);
+
+            fetch_hlp.detach();
         }
 
         void upload_file(sockaddr_in server, std::string additional_data, uint16_t port) {

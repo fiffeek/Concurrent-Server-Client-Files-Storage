@@ -48,9 +48,7 @@ namespace sik::client {
             }
         }
 
-        void invalid_file_name_log(bool log) {
-            if (!log) return;
-
+        void invalid_file_name_log() {
             std::scoped_lock lock(mtx);
             std::cout << "Given filename is invalid." << std::endl;
         }
