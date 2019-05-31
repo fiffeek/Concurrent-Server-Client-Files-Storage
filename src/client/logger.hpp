@@ -57,7 +57,7 @@ namespace sik::client {
             std::scoped_lock lock(mtx);
             std::cout << "File "
                       << filename
-                      << " uploading failed "
+                      << " downloading failed "
                       << "("
                       << ":"
                       << ") "
