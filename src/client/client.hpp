@@ -193,15 +193,16 @@ namespace sik::client {
         }
 
         void upload_file(sockaddr_in server, std::string additional_data, uint16_t port) {
+            sik::common::file scheduled_file{fs::path{additional_data}};
+
             try {
                 tcp_socket sock{};
                 sock.spawn_socket(server, (uint16_t) port);
 
-                sik::common::file scheduled_file{fs::path{additional_data}};
                 scheduled_file.sendto(sock);
-                logger.file_uploaded(additional_data, server, port);
+                logger.file_uploaded(scheduled_file.get_filename(), server, port);
             } catch (std::exception& e) {
-                logger.upload_interrupted(additional_data, server, port, e.what());
+                logger.upload_interrupted(scheduled_file.get_filename(), server, port, e.what());
             }
         }
 
@@ -218,7 +219,7 @@ namespace sik::client {
                 auto filename = scheduled_file.get_filename();
                 bool any_sent = false;
                 if (servers_cpy.empty() || !servers_cpy.can_hold(iter, scheduled_file.get_file_size())) {
-                    logger.file_too_big(additional_data);
+                    logger.file_too_big(scheduled_file.get_filename());
                     return;
                 }
 
@@ -295,7 +296,7 @@ namespace sik::client {
                 }
 
                 if (!any_sent)
-                    logger.file_too_big(additional_data);
+                    logger.file_too_big(scheduled_file.get_filename());
 
             } catch (std::exception& e) {
                 logger.cant_upload(e.what(), data.additional_log);
