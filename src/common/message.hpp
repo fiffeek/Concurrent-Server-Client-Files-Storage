@@ -144,9 +144,9 @@ namespace sik::common {
         }
 
         std::string get_title() {
-            char message[MESSAGE_TITLE];
+            char message[MESSAGE_TITLE + 1];
 
-            memset(message, 0, MESSAGE_TITLE);
+            memset(message, 0, MESSAGE_TITLE + 1);
             memcpy(message,
                     this->message.data(),
                     MESSAGE_TITLE < this->message.size() ? MESSAGE_TITLE : this->message.size());
